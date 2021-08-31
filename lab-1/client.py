@@ -1,3 +1,7 @@
+'''
+    client.py       -- Main program for client (socket programming)
+'''
+
 from configurations import *
 from socket import *
 

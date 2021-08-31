@@ -1,3 +1,7 @@
+'''
+    server.py       -- Main program for server (socket programming)
+'''
+
 from configurations import *
 from socket import *
 

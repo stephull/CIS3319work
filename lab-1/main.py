@@ -1,4 +1,9 @@
+'''
+    main.py     -- Main program for project
+'''
+
 from configurations import *
+from cipher import *
 from server import *
 from client import *
 
@@ -24,11 +29,9 @@ def main():
     # generate key file 
     generate_keyfile()
 
-    # call server
-    start_server()
-
-    # call client
-    start_client()
+    # call server + client:
+    #start_server()
+    #start_client()
 
 # start program
 if __name__ == "__main__":

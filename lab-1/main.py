@@ -13,29 +13,44 @@ def check_port(n):
 
 # main method
 def main():
+
     # check if port is valid
     if (check_port(PORT) < 0):
         raise ValueError(f'\n\n :: PORT invalid, change to value between {MIN_PORT} and {MAX_PORT} :: \n')
     print(f'PORT {PORT} valid')
 
-    # connect client and server into main program
-    #server_side()
-
-    # input
-    print("Enter your message (8, 16, or 24 characters long) >>> ", end=" ")
-    plaintext = str(input())        # must be 8, 16, or 24 characters long
-    assert len(plaintext) in (8, 16, 24)
-
     # generate key file with the assembled key
     keyfile = generate_keyfile(generate_key(KEY_LEN))
 
+    # connect client and server into main program
+    #server_side()
+    #client_side()
+
+    '''
+    TEST FOR NOW...
+    '''
+
+    # input
+    print("Enter your message >>> ", end=" ")
+    plaintext = str(input())        
+        # QUESTION: WHY DOES IT WORK ONLY ON 8, 16, 24 char.s long?
+
+    # format everything into one place :-)
+    def format_msg():
+        print(FORMAT_STR)
+        print(f'\tKEY: {x}')
+        print(f'\tSent plaintext: {plaintext}')
+        print(f'\tSent ciphertext: {ciphertext}')
+        print(FORMAT_STR)
+
     # try
     with open(keyfile, "r") as k:
-
-        # ciphertext
-        key_text = k.read()
-        temp_key = DesKey(str.encode(key_text))
-        temp_key.encrypt(str.encode(plaintext))
+        x = k.read()
+        ciphertext = encrypt_msg(x, plaintext)
+            # NEXT TIME: find a way to convert each byte into ASCII values
+            #   example output now: b'\xc6\xa3k2er8\x98'
+            #   we want something like AGfuwrocwu0y328qc51t2v or whatever
+        format_msg()
 
         k.close()
 

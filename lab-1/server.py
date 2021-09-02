@@ -4,17 +4,27 @@
 
 from configurations import *
 from socket import *
+from select import *
 
-# create new server
-def start_server():
-    with socket(AF_INET, SOCK_STREAM) as s:
-        s.bind((LOCALHOST, PORT))
-        s.listen()
-        conn, addr = s.accept()
-        with conn:
-            print('Accepted new connection from {}'.format(addr))
-            while True:
-                data = conn.recv(1024)
-                if not data:
-                    break
-                conn.sendall(data)
+def server_side():
+    print("Starting client-socket program...")
+
+    server_socket = socket(AF_INET, SOCK_STREAM)
+    server_socket.bind((LOCALHOST, PORT))
+
+    server_socket.listen(BACKLOG)
+    conn, addr = server_socket.accept()
+
+    print(f'Connecting: {str(addr)}')
+
+    while True:
+        data = conn.recv(RECV_BYTES).decode()
+        if not data:
+            break
+        print(f'From client: {str(data)}')
+        data = input(INPUT_STR)
+        conn.send(data.encode())
+    conn.close()
+
+if __name__ == '__main__':
+    server_side()

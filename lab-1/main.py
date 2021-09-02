@@ -4,8 +4,8 @@
 
 from configurations import *
 from cipher import *
-#from server import *
-#from client import *
+from server import *
+from client import *
 
 # first function, make sure all ports are within respective range
 def check_port(n):
@@ -15,22 +15,29 @@ def check_port(n):
 def main():
     # check if port is valid
     if (check_port(PORT) < 0):
-        raise ValueError('\n\n :: PORT invalid, change to value between {} and {} :: \n'.format(MIN_PORT, MAX_PORT))
-    print('PORT {} valid'.format(PORT))
+        raise ValueError(f'\n\n :: PORT invalid, change to value between {MIN_PORT} and {MAX_PORT} :: \n')
+    print(f'PORT {PORT} valid')
+
+    # connect client and server into main program
+    #server_side()
 
     # input
-    print("Enter your message:", end=" ")
-    plaintext = str(input())
+    print("Enter your message (8, 16, or 24 characters long) >>> ", end=" ")
+    plaintext = str(input())        # must be 8, 16, or 24 characters long
+    assert len(plaintext) in (8, 16, 24)
 
     # generate key file with the assembled key
-    keyfile = generate_keyfile(generate_key())
+    keyfile = generate_keyfile(generate_key(KEY_LEN))
 
-    # print contents to console
-    print("\n :: TEST, NOT REAL :: ")
-    print("Generated key is: ", open(keyfile, "r").read())
-    print("Sent plaintext is: ", plaintext)
-    print("TEST Sent ciphertext is: {}".format(listToString(random.sample(all_values, len(plaintext)))))
-    print('\n')
+    # try
+    with open(keyfile, "r") as k:
+
+        # ciphertext
+        key_text = k.read()
+        temp_key = DesKey(str.encode(key_text))
+        temp_key.encrypt(str.encode(plaintext))
+
+        k.close()
 
 # start program
 if __name__ == "__main__":

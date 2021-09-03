@@ -10,10 +10,11 @@ def client_side():
     client_socket = socket(AF_INET, SOCK_STREAM)
     client_socket.connect((LOCALHOST, PORT))
 
+    print(f'Welcome. You are the client. Remember to type {EXIT_KEY} to exit...')
     msg = input(INPUT_STR)
 
     # exit program by typing "-1" or pressing the 'Esc' key:
-    while msg.lower().strip() != '-1':
+    while msg.lower().strip() != str(EXIT_KEY):
         client_socket.send(msg.encode())
         data = client_socket.recv(RECV_BYTES).decode()
         print(f'From server: {data}')

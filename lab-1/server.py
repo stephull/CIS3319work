@@ -15,11 +15,12 @@ def server_side():
     server_socket.listen(BACKLOG)
     conn, addr = server_socket.accept()
 
-    print(f'Connecting: {str(addr)}')
+    print(f'Connecting with client {str(addr)}\n')
 
     while True:
         data = conn.recv(RECV_BYTES).decode()
         if not data:
+            print(f'Client has exited by typing {EXIT_KEY}, server shutting down.')
             break
         print(f'From client: {str(data)}')
         data = input(INPUT_STR)

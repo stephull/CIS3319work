@@ -1,5 +1,5 @@
 '''
-    cipher.py   -- Functions for encryption and decryption
+    gears.py   -- Functions for encryption and decryption
 '''
 
 from configurations import *
@@ -21,6 +21,14 @@ def generate_key(n):
     for i in range(n):
         str += random.choice(all_values)
     return str
+    
+# format messages each time an output is made
+def format_msg(key, plaintext, ciphertext):
+    print(FORMAT_STR)
+    print(f'\tKEY: {key}')
+    print(f'\tSent plaintext: {plaintext}')
+    print(f'\tSent ciphertext: {ciphertext}')
+    print(FORMAT_STR)
 
 # generate to ciphertext OR encrypt message
 def encrypt_msg(key, text):

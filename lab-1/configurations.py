@@ -6,6 +6,7 @@ import random, string       # for randomization and ASCII values
 import sys, os, errno       # for system and OS operations, error recognition, and terminal execution
 sys.path.append(r'c:/users/shull/appdata/local/packages/pythonsoftwarefoundation.python.3.7_qbz5n2kfra8p0/localcache/local-packages/python37/site-packages')
 from des import DesKey      # outside import: for DES algorithm
+from socket import *        # for socket programming essentials
 
 # essential properties for chat program
 PORT = 3319

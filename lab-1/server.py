@@ -3,8 +3,7 @@
 '''
 
 from configurations import *
-from socket import *
-from select import *
+from gears import *
 
 def server_side():
     print("Starting client-socket program...")

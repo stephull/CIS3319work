@@ -3,7 +3,7 @@
 '''
 
 from configurations import *
-from cipher import *
+from gears import *
 from server import *
 from client import *
 
@@ -34,8 +34,6 @@ def main():
     # AND if client joins, generate key (assure that both client and server are present)
     if comm != str(SERVER) and comm != str(CLIENT):
         raise AssertionError(f'\n\n :: Must be {SERVER} or {CLIENT} for second argument, try again! :: \n')
-    if comm == str(CLIENT):
-        keyfile = generate_keyfile(generate_key(KEY_LEN))
     server_side() if (comm == SERVER) else client_side()
 
 # start program

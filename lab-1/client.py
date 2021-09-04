@@ -9,22 +9,39 @@ def client_side():
     client_socket = socket(AF_INET, SOCK_STREAM)
     client_socket.connect((LOCALHOST, PORT))
 
-    keyfile = generate_keyfile(generate_key(KEY_LEN))
-
     print(f'Welcome. You are the client. Remember to type {EXIT_KEY} to exit...')
+    
+    # send input to server
     msg = input(INPUT_STR)
 
     # exit program by typing "-1" or pressing the 'Esc' key:
     while msg.lower().strip() != str(EXIT_KEY):
+
+        # read from the file and encrypt message
         with open(keyfile, "r") as k:
             key = k.read()
             ciphertext = encrypt_msg(key, msg)
-            format_msg(key, msg, ciphertext)
+            format_msg(key, msg, ciphertext, ENC)
+            
+            # send the input
+            client_socket.send(ciphertext)
+
+            # ...
+
+            data = client_socket.recv(RECV_BYTES).decode()
+
+            # decrypt + message 
+            new_plaintext = decrypt_msg(key, data)
+            format_msg(key, data, new_plaintext, DEC)
             k.close()
-        client_socket.send(msg.encode())
-        data = client_socket.recv(RECV_BYTES).decode()
-        print(f'From server: {data}')
+
+        # print decrypted message after receiving input
+        response = "DECRYPTION YAY (CLIENT)"
+        print(response)     # print only ciphertext and plaintext, NEVER key
+
+        # send input to server
         msg = input(INPUT_STR)
+
     client_socket.close()
     sys.exit()
 

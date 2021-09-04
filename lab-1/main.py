@@ -1,5 +1,6 @@
 '''
     main.py     -- Main program for project
+    ALWAYS start executable with 'python3 main.py <user>'
 '''
 
 from configurations import *
@@ -22,7 +23,6 @@ def main():
 
     # check if arguments are correct
     check_args()
-    comm = sys.argv[1]
 
     # check if port is valid
     if (check_port(PORT) < 0):
@@ -32,9 +32,9 @@ def main():
     # connect client and server into main program
     # IF argument asks for 'client' or 'server', give them the right interface
     # AND if client joins, generate key (assure that both client and server are present)
-    if comm != str(SERVER) and comm != str(CLIENT):
+    if COMM != str(SERVER) and COMM != str(CLIENT):
         raise AssertionError(f'\n\n :: Must be {SERVER} or {CLIENT} for second argument, try again! :: \n')
-    server_side() if (comm == SERVER) else client_side()
+    server_side() if (COMM == SERVER) else client_side()
 
 # start program
 if __name__ == "__main__":

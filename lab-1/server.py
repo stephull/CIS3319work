@@ -17,11 +17,24 @@ def server_side():
     print(f'Connecting with client {str(addr)}\n')
 
     while True:
+        # receive from client
         data = conn.recv(RECV_BYTES).decode()
         if not data:
             print(f'Client has exited by typing {EXIT_KEY}, server shutting down.')
             break
-        print(f'From client: {str(data)}')
+
+        # decrypt message 
+        with open(keyfile, "r") as k:
+            key = k.read()
+            new_plaintext = decrypt_msg(key, data)
+            format_msg(key, data, new_plaintext, ENC)
+            k.close()
+
+        # print decrypted message after receiving input
+        response = "DECRYPTION YAY (SERVER)"
+        print(response)     # print only ciphertext and plaintext, NEVER key
+
+        # send input to client
         data = input(INPUT_STR)
         conn.send(data.encode())
     conn.close()

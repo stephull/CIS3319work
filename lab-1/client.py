@@ -20,11 +20,11 @@ def client_side():
         # read from the file and encrypt message
         with open(keyfile, "r") as k:
             key = k.read()
-            ciphertext = encrypt_msg(key, msg)
+            ciphertext = encrypt_msg(key, msg) ###
             format_msg(key, msg, ciphertext, ENC)
             
-            # send the input
-            client_socket.send(ciphertext)
+            # send the input, should send ciphertext
+            client_socket.send(str(ciphertext).encode()) ###
 
             # ...
 
@@ -32,12 +32,10 @@ def client_side():
 
             # decrypt + message 
             new_plaintext = decrypt_msg(key, data)
+            print(f'\nFROM: {SERVER}')
             format_msg(key, data, new_plaintext, DEC)
-            k.close()
 
-        # print decrypted message after receiving input
-        response = "DECRYPTION YAY (CLIENT)"
-        print(response)     # print only ciphertext and plaintext, NEVER key
+            k.close()
 
         # send input to server
         msg = input(INPUT_STR)

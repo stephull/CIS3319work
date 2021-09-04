@@ -38,7 +38,7 @@ SERVER = "server"
 
 # for formatting messages while chat program is running
 INPUT_STR = "\nType message >>> "
-FORMAT_STR = '=' * 56
+FORMAT_STR = '=' * 72
 
 # for formatting messages based on whether operation is encryption or decryption
 ENC = 0

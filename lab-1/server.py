@@ -13,12 +13,11 @@ def server_side():
 
     server_socket.listen(BACKLOG)
     conn, addr = server_socket.accept()
-
     print(f'Connecting with client {str(addr)}\n')
 
     while True:
-        # receive from client
-        data = conn.recv(RECV_BYTES).decode()
+        # receive data, which represents the encrypted message from the client
+        data = conn.recv(RECV_BYTES).decode()   ###
         if not data:
             print(f'Client has exited by typing {EXIT_KEY}, server shutting down.')
             break
@@ -27,16 +26,18 @@ def server_side():
         with open(keyfile, "r") as k:
             key = k.read()
             new_plaintext = decrypt_msg(key, data)
-            format_msg(key, data, new_plaintext, ENC)
+            print(f'\nFROM: {CLIENT}')
+            format_msg(key, data, new_plaintext, DEC)
+
+            # send input to client
+            new_data = input(INPUT_STR)
+            
+            # encrypt new message
+            ciphertext = encrypt_msg(key, new_data)
+            format_msg(key, new_data, ciphertext, ENC)
+            conn.send(new_data.encode())
+
             k.close()
-
-        # print decrypted message after receiving input
-        response = "DECRYPTION YAY (SERVER)"
-        print(response)     # print only ciphertext and plaintext, NEVER key
-
-        # send input to client
-        data = input(INPUT_STR)
-        conn.send(data.encode())
     conn.close()
 
 if __name__ == '__main__':

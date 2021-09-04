@@ -5,7 +5,7 @@
 from configurations import *
 
 # inherit all ascii values for key generation
-all_values = string.ascii_letters + string.digits + string.punctuation
+all_values = string.ascii_letters + string.digits #+ string.punctuation
 
 # assemble new text file for key
 def generate_keyfile(resource):
@@ -39,8 +39,10 @@ def format_msg(key, input, output, mode):
 
 # generate to ciphertext OR encrypt message
 def encrypt_msg(key, text):
+    #return "ENCRYPT TEST: {}, {}".format(text, key).encode('utf-8')
     return DesKey(str.encode(key)).encrypt(str.encode(text), initial=0, padding=True)
 
 # recieve plaintext from ciphertext OR decrypt server/client msg.
 def decrypt_msg(key, value):
-    return DesKey(str.encode(key)).decrypt(str.encode(value), initial=0, padding=True)
+    return "DECRYPT TEST: {}, {}".format(value, key).encode('utf-8')
+    #return DesKey(key.encode()).decrypt(value.encode(), initial=0, padding=True)

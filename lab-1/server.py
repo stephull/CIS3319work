@@ -35,7 +35,7 @@ def server_side():
             # encrypt new message
             ciphertext = encrypt_msg(key, new_data)
             format_msg(key, new_data, ciphertext, ENC)
-            conn.send(new_data.encode())
+            conn.send(str(ciphertext).encode())
 
             k.close()
     conn.close()

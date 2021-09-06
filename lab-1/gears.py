@@ -44,5 +44,6 @@ def encrypt_msg(key, text):
 
 # recieve plaintext from ciphertext OR decrypt server/client msg.
 def decrypt_msg(key, value):
-    return "DECRYPT TEST: {}, {}".format(value, key).encode('utf-8')
-    #return DesKey(key.encode()).decrypt(value.encode(), initial=0, padding=True)
+    #return "DECRYPT TEST: {}, {}".format(value, key).encode('utf-8')
+    print("TEST KEY: ", value)
+    return DesKey(str.encode(key)).decrypt(str.encode(value), initial=0, padding=True)

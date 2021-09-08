@@ -20,7 +20,7 @@ RECV_BYTES = 1024
 # length of input
 INPUT_LENGTH = 64
 ARGS_LENGTH = 2
-KEY_LEN = (8, 16, 24)
+KEY_LEN = 8
 
 # for port number range
 MAX_PORT = 49151

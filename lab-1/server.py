@@ -17,27 +17,24 @@ def server_side():
 
     while True:
         # receive data, which represents the encrypted message from the client
-        data = conn.recv(RECV_BYTES).decode()   ###
+        data = conn.recv(RECV_BYTES).decode()   ### S(4/10)
         if not data:
             print(f'Client has exited by typing {EXIT_KEY}, server shutting down.')
             break
 
         # decrypt message 
-        with open(keyfile, "r") as k:
-            key = k.read()
-            new_plaintext = decrypt_msg(key, data)
-            print(f'\nFROM: {CLIENT}')
-            format_msg(key, data, new_plaintext, DEC)
+        new_plaintext = decrypt_msg(key, data)     ### S(5/10)
+        print(f'\nFROM: {CLIENT}')
+        format_msg(key, data, new_plaintext, DEC)
 
-            # send input to client
-            new_data = input(INPUT_STR)
-            
-            # encrypt new message
-            ciphertext = encrypt_msg(key, new_data)
-            format_msg(key, new_data, ciphertext, ENC)
-            conn.send(str(ciphertext).encode())
-
-            k.close()
+        # send input to client
+        new_data = input(INPUT_STR)     ### S(6/10)
+        
+        # encrypt new message
+        ciphertext = encrypt_msg(key, new_data)    ### S(7/10)
+        format_msg(key, new_data, ciphertext, ENC) 
+        conn.send(str(ciphertext).encode())     ### S(8/10)
+        
     conn.close()
 
 if __name__ == '__main__':

@@ -5,16 +5,14 @@
 import random, string       # for randomization and ASCII values
 import sys, os, errno       # for system and OS operations, error recognition, and terminal execution
 from socket import *        # for socket programming essentials
+from pyDes import *         # library for DES essentials
 
-sys.path.append(r'c:/users/shull/appdata/local/packages/pythonsoftwarefoundation.python.3.7_qbz5n2kfra8p0/localcache/local-packages/python37/site-packages')
-from des import DesKey      # outside import: for DES algorithm
-
-# essential properties for chat program
+# connective properties for chat program
 PORT = 3319
 LOCALHOST = "127.0.0.1"
 
 # for backlog and number of bytes socket can receive
-BACKLOG = 2
+BACKLOG = 1
 RECV_BYTES = 1024
 
 # length of input

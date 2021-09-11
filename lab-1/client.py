@@ -10,34 +10,32 @@ def client_side():
     client_socket.connect((LOCALHOST, PORT))
 
     print(f'Welcome. You are the client. Remember to type {EXIT_KEY} to exit...')
-    
+
     # send input to server 
-    msg = input(INPUT_STR)  ### S(1/10)
+    client_msg = input(INPUT_STR)  ### S(1/10)
+
+    key = make_key()
 
     # exit program by typing "-1" or pressing the 'Esc' key:
-    while msg.lower().strip() != str(EXIT_KEY):
+    while client_msg.lower().strip() != str(EXIT_KEY):
 
         # read from the file and encrypt message
-        ciphertext = encrypt_msg(key, msg) ### S(2/10)
-        format_msg(key, msg, ciphertext, ENC)
+        client_send = encrypt_msg(key, client_msg) ### S(2/10)
+        format_msg(key, client_msg, client_send, ENC)
         
         # send the input, should send ciphertext
-        client_socket.send(str(ciphertext).encode()) ### S(3/10)
+        client_socket.send(client_send) ### S(3/10)
 
-        # ...
-
-        data = client_socket.recv(RECV_BYTES).decode()    ### S(9/10)
+        # receive new output from server
+        receive_data = client_socket.recv(RECV_BYTES)    ### S(9/10)
 
         # decrypt + message 
-        new_plaintext = decrypt_msg(key, data)  ### S(10/10)
+        client_recieve = decrypt_msg(key, receive_data).decode()  ### S(10/10)
         print(f'\nFROM: {SERVER}')
-        format_msg(key, data, new_plaintext, DEC)
+        format_msg(key, receive_data, client_recieve, DEC)
 
-        # send input to server
-        msg = input(INPUT_STR)
+        # send brand new input to server
+        client_msg = input(INPUT_STR)
 
     client_socket.close()
     sys.exit()
-
-if __name__ == '__main__':
-    client_side()

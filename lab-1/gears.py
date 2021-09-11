@@ -5,7 +5,7 @@
 from configurations import *
 
 # inherit all ascii values for key generation
-all_values = string.ascii_letters + string.digits + string.punctuation
+all_values = string.ascii_letters + string.digits
 
 # assemble new text file for key AND generate key for both client + server to use
 def generate_keyfile(resource):
@@ -32,23 +32,21 @@ def format_msg(key, input, output, mode):
         print(f'\tSent plaintext: {output}')
     print(FORMAT_STR)
 
-# DesKey generation for each time a request from client or server is made
+# make DesKey for encryption and decryption 
 def make_key():
-    with open(keyfile, 'r') as k:
-        key = k.read()
+    key = None
+    with open(keyfile, "r") as k:
+        key = k.read().strip()
         k.close()
     return key
-key = make_key()
 
-# generate to ciphertext OR encrypt message
-def encrypt_msg(key, text):
-    temp = DesKey(str(key).encode())
-    return temp.encrypt(str(text).encode(), initial=0, padding=True)
-
-# recieve plaintext from ciphertext OR decrypt server/client msg.
-def decrypt_msg(key, value):
+# generate to ciphertext OR back to plaintext
+def encrypt_msg(new_deskey, input):
+    k = des("DESCRYPT", CBC, new_deskey, pad=None, padmode=PAD_PKCS5)
+    return k.encrypt(input)
+def decrypt_msg(new_deskey, value):
     try:
-        temp = DesKey(str(key).encode())
-        return temp.decrypt(str(value).encode(), initial=0, padding=True)
+        d = des("DESCRYPT", CBC, new_deskey, pad=None, padmode=PAD_PKCS5)
+        return d.decrypt(value) 
     except:
         return False

@@ -12,7 +12,7 @@ def client_side():
     print(f'Welcome. You are the client. Remember to type {EXIT_KEY} to exit...')
 
     # send input to server 
-    client_msg = input(INPUT_STR)  ### S(1/10)
+    client_msg = input(INPUT_STR)
 
     key = make_key()
 
@@ -20,17 +20,16 @@ def client_side():
     while client_msg.lower().strip() != str(EXIT_KEY):
 
         # read from the file and encrypt message
-        client_send = cipher(key, client_msg, ENC) ### S(2/10)
+        client_send = cipher(key, client_msg, ENC)
         format_msg(key, client_msg, client_send, ENC)
-        
-        # send the input, should send ciphertext
-        client_socket.send(client_send) ### S(3/10)
+        client_socket.send(client_send)
 
+        # wait until the server sends input...
         # receive new output from server
-        receive_data = client_socket.recv(RECV_BYTES)    ### S(9/10)
+        receive_data = client_socket.recv(RECV_BYTES)
 
         # decrypt + message 
-        client_recieve = cipher(key, receive_data, DEC).decode()  ### S(10/10)
+        client_recieve = cipher(key, receive_data, DEC).decode()
         print(f'\nFROM: {SERVER}')
         format_msg(key, receive_data, client_recieve, DEC)
 

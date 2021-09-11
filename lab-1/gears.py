@@ -42,7 +42,7 @@ def make_key():
 
 # generate to ciphertext OR back to plaintext
 def setDES(k):
-    return des("DESCRYPT", CBC, k, pad=None, padmode=PAD_PKCS5)
+    return des(k, CBC, k, pad=None, padmode=PAD_PKCS5)
 def cipher(key, input, mode):
     try: return setDES(key).encrypt(input) if mode == ENC else setDES(key).decrypt(input)
     except: return False

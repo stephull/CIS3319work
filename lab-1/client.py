@@ -20,7 +20,7 @@ def client_side():
     while client_msg.lower().strip() != str(EXIT_KEY):
 
         # read from the file and encrypt message
-        client_send = encrypt_msg(key, client_msg) ### S(2/10)
+        client_send = cipher(key, client_msg, ENC) ### S(2/10)
         format_msg(key, client_msg, client_send, ENC)
         
         # send the input, should send ciphertext
@@ -30,7 +30,7 @@ def client_side():
         receive_data = client_socket.recv(RECV_BYTES)    ### S(9/10)
 
         # decrypt + message 
-        client_recieve = decrypt_msg(key, receive_data).decode()  ### S(10/10)
+        client_recieve = cipher(key, receive_data, DEC).decode()  ### S(10/10)
         print(f'\nFROM: {SERVER}')
         format_msg(key, receive_data, client_recieve, DEC)
 

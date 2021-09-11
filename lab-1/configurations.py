@@ -3,7 +3,7 @@
 '''
 
 import random, string       # for randomization and ASCII values
-import sys, os, errno       # for system and OS operations, error recognition, and terminal execution
+import sys, os              # for system and OS operations
 from socket import *        # for socket programming essentials
 from pyDes import *         # library for DES essentials
 

@@ -3,7 +3,6 @@
     ALWAYS start executable with 'python3 main.py <user>'
 '''
 
-from configurations import *
 from gears import *
 from server import *
 from client import *

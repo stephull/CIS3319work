@@ -13,7 +13,7 @@ def server_side():
 
     server_socket.listen(BACKLOG)
     conn, addr = server_socket.accept()
-    print(f'Connecting with client {str(addr)}\n')
+    print(f'* Connecting with client {str(addr)}\n')
 
     key = make_key()
 
@@ -25,7 +25,7 @@ def server_side():
             break
 
         # decrypt message 
-        server_receive = decrypt_msg(key, receive_data).decode()     ### S(5/10)
+        server_receive = cipher(key, receive_data, DEC).decode()     ### S(5/10)
 
         print(f'\nFROM: {CLIENT}')
         format_msg(key, receive_data, server_receive, DEC)
@@ -34,7 +34,7 @@ def server_side():
         server_msg = input(INPUT_STR)     ### S(6/10)
         
         # encrypt new message
-        server_send = encrypt_msg(key, server_msg)    ### S(7/10)
+        server_send = cipher(key, server_msg, ENC)    ### S(7/10)
         format_msg(key, server_msg, server_send, ENC) 
         conn.send(server_send)     ### S(8/10)
 

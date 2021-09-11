@@ -5,7 +5,7 @@
 from configurations import *
 
 # inherit all ascii values for key generation
-all_values = string.ascii_letters + string.digits
+all_values = string.ascii_letters + string.digits + string.punctuation
 
 # assemble new text file for key AND generate key for both client + server to use
 def generate_keyfile(resource):
@@ -41,12 +41,8 @@ def make_key():
     return key
 
 # generate to ciphertext OR back to plaintext
-def encrypt_msg(new_deskey, input):
-    k = des("DESCRYPT", CBC, new_deskey, pad=None, padmode=PAD_PKCS5)
-    return k.encrypt(input)
-def decrypt_msg(new_deskey, value):
-    try:
-        d = des("DESCRYPT", CBC, new_deskey, pad=None, padmode=PAD_PKCS5)
-        return d.decrypt(value) 
-    except:
-        return False
+def setDES(k):
+    return des("DESCRYPT", CBC, k, pad=None, padmode=PAD_PKCS5)
+def cipher(key, input, mode):
+    try: return setDES(key).encrypt(input) if mode == ENC else setDES(key).decrypt(input)
+    except: return False

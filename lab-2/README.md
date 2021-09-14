@@ -3,13 +3,10 @@
 * September 2021
 
 # Files (main)
-* main: Main program, executable
-* configurations:   Constants for all files, holds all imports, and all functionalities/methods
-* server: server program for socket networking
-* client: client program
+* main: Main program, executable.
+* configurations:   Constants for all files, holds all imports, and all functionalities/methods.
+* network: client and server socket networking program.
 
 # Files (other)
-* HMAC.txt: text file for containing HMAC key
-* DES.txt: text file for containing DES key
-
-# Sources
+* HMAC.txt: text file for containing HMAC key.
+* DES.txt: text file for containing DES key.

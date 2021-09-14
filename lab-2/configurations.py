@@ -45,12 +45,27 @@ ARGS_LENGTH = 2
 '''
     functions
 '''
-# make key, for either HMAC or DES
-def make_key():
+
+# generate key AND file for either HMAC or DES
+def make_keyfile(file):
+    new_path = f"{file}" if os.getcwd() == str(FULL_CWD) else f"{FULL_CWD}/{file}"
+    resource = None
+    values = string.ascii_letters + string.digits
+    
+    with open(new_path, "w") as k:
+        k.write(resource)
+        k.close()
+
+# convert message data to HMAC
+def convert_to_HMAC():
     pass
 
-# generate file for either HMAC or DES
-def make_keyfile():
+# concatenate string with DES key
+def concatenate_with_DES():
+    pass
+
+# verify, once received, that both received and newly calculated HMAC are the same
+def verify_HMAC():
     pass
 
 # for formatting message each time a message is sent or if one is received
@@ -59,4 +74,20 @@ def format_msg(other, recv=False):
     # other indicates a party that is opposite from the person sending or receiving
     fluff=":::::"
     msg = "Sending to: " if recv else "Sent from: "
-    return f"{fluff}{msg}{other}{fluff}"
+    header = f"{fluff}{msg}{other}{fluff}"
+
+    print(header)
+    if (recv):
+        # this is the receiving side
+        print("Received ciphertext: {}")
+        print("Received message: {}")
+        print("Recevied HMAC: {}")
+        print("Calculated HMAC: {}")
+        print("HMAC verified") if verify_HMAC() == True else print("Couldn't verify HMAC")
+    else:
+        # this is the sender's side
+        print("Shared DES key: {}")
+        print("Shared HMAC key: {}")
+        print("Plain message: {}")
+        print("Sender side HMAC: {}")
+        print("Sent ciphertext: {}")

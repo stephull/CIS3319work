@@ -5,7 +5,7 @@ from network import *
 
 def main():
     # check if the number of arguments is correct
-    assert len(sys.argv) == ARGS_LENGTH
+    assert len(sys.argv) == ARGS_LEN
     command = sys.argv[1]
 
     # use assert statements to check PORT validity AND correct command argument

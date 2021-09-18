@@ -5,10 +5,11 @@
 '''
     imports
 '''
-from hashlib import *       # main import for HMAC and hashing functionalities
-from pyDes import *         # for encryption of messages transmitted between server and client
+import hashlib          # main import for hashing functionalities
+import hmac             # main import for HMAC functionalities
+import pyDes            # for encryption of messages transmitted between server and client
 from socket import *        # for socket programming functionalities
-import random, os, sys, string
+import random, os, sys, string      # for other important methods...
 
 '''
     constants and finals 
@@ -18,28 +19,28 @@ CWD = "lab-2"
 FULL_CWD = f"C:/Users/shull/OneDrive/Desktop/School/FALL 2021/CIS 3319/CIS3319work/CIS3319work/{CWD}"
 
 # text files
-HMAC = "HMAC.txt"
-DES = "DES.txt"
+HMAC_FILE = "HMAC.txt"
+DES_FILE = "DES.txt"
 
 # arguments
-ENC = 0, DEC = 1
+ENC = 0
+DEC = 1
 SERVER = "server"
 CLIENT = "client"
 
-# for socket programming localhost and port
+# for socket programming
 PORT = 8008
 HOST = "127.0.0.1"
 PORT_MIN = 1024
 PORT_MAX = 49151
-
-# for socket programming interior methods or variables
 BACKLOG = 1
 RECV_BYTES = 1024
-INPUT_STR = "ENTER MESSAGE>>> "
+INPUT_STR = "ENTER MESSAGE >>> "
 EXIT_KEY = "-1"
 
 # lengths of string literals
-KEY_LEN = 8
+DES_KEY_LEN = 8
+HMAC_KEY_LEN = 16
 ARGS_LEN = 2
 HASH_LEN = 64
 
@@ -47,13 +48,9 @@ HASH_LEN = 64
 FORMAT_ARGV_MIN = 4
 FORMAT_ARGV_MAX = 5
 
-# size of variables in SHA-1
+# size of variables in SHA-256
 BLOCK_SIZE = 64
 OUTPUT_SIZE = 20
-
-# other important things
-OPAD = "36"
-IPAD = "5c"
 
 '''
     functions
@@ -61,67 +58,62 @@ IPAD = "5c"
 # generate key AND file for either HMAC or DES
 def make_keyfile(file):
     new_path = f"{file}" if os.getcwd() == str(FULL_CWD) else f"{FULL_CWD}/{file}"
-    resource = ""
     values = string.ascii_letters + string.digits + string.punctuation
-    for i in range(KEY_LEN) : resource += random.choice(values)
+    assert file == DES_FILE or file == HMAC_FILE
+    key_length = DES_KEY_LEN if (file == DES_FILE) else HMAC_KEY_LEN
+
+    resource = ""
+    for i in range(key_length) : resource += random.choice(values)
     with open(new_path, "w") as k:
         k.write(resource)
         k.close()
     return new_path
-HMAC_keyfile = make_keyfile(HMAC)
-DES_keyfile = make_keyfile(DES)
+HMAC_keyfile = make_keyfile(HMAC_FILE)
+DES_keyfile = make_keyfile(DES_FILE)
 
 '''
     FYI: the 4 functions below are for theoretical purposes :-)
     check back on HMAC encryption algorithm and 5/26/22 on my planner.
     --> HMAC(K,M) = H[(K' XOR opad) || H[(K' XOR ipad) || M ] ]
-                    H[] = hash()
-                    K' = pad_key(key)
-                    K' XOR #### = XOR_contents(####)
-                    K' XOR #### || M = concatentate_with_msg()
-    ALSO, it's very possible that this stuff is already in the libraries
 '''
 # function for implementing hash function
-def hash():
-    pass
+def hash(msg):
+    return hashlib.sha256(str.encode(msg)).hexdigest()
+    # QUESTION: is this necessary, or is get_hmac enough?!?
 
-# use padding for key 
-def pad_key(key):
-    if key > BLOCK_SIZE:
-        pass
-    pass
-
-# use the padded key and either opad/ipad to XOR
-def XOR_contents():
-    pass
-
-# concatenate, for instance, the result of XOR and the message bitstring
-def concatenate_with_msg():
-    pass
-
-#####
+# function that returns the construction of the HMAC
+def get_hmac(key, input):
+    sha = hmac.new(str.encode(key), digestmod=hashlib.sha256)
+    sha.update(str.encode(input))
+    return sha.hexdigest()
 
 # convert message into encrypted DES key
-def create_DESkey():
-    pass
+def create_DESkey(key):
+    return pyDes.des(key, pyDes.CBC, key, pad=None, padmode=pyDes.PAD_PKCS5)
 
-# encrypt or decrypt messages, use DES key as mentioned above
-def descrypt(mode):
-    pass
+# for concatentation of message and HMAC before DES
+def concat(msg, hash):
+    return str.encode(msg) + str.encode(hash)
+
+# encrypt or decrypt messages, use DES key as mentioned above, use ENC or DEC
+def descrypt(mode, key, input):
+    assert mode == ENC or mode == DEC
+    try: return create_DESkey(key).encrypt(input) if mode == ENC else create_DESkey(key).decrypt(input)
+    except: return False
 
 # verify, once received, that both received and newly calculated HMAC are the same
 def verify_HMAC(received, calculated):
     return True if received == calculated else False
 
 # for formatting message each time a message is sent or if one is received
-def format_msg(other_party, recv=False, *argv):
-    assert len(argv) == FORMAT_ARGV_MAX if recv else len(argv) == FORMAT_ARGV_MIN
+def format_msg(recv, *argv):
+    assert len(argv) == FORMAT_ARGV_MIN if recv else FORMAT_ARGV_MAX
 
     # if recv is True, it means the message has been both sent and recieved
     # other indicates a party that is opposite from the person sending or receiving
-    fluff=":::::"
-    msg = "Sending to: " if recv else "Sent from: "
-    header = f"{fluff}{msg}{other_party}{fluff}"
+    fluff=" ::::: "
+    msg = "Receiver side" if recv else "Sender side"
+    header = f"{fluff}{msg}{fluff}"
 
     print(header)
     if (recv):

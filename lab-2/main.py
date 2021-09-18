@@ -10,9 +10,7 @@ def main():
 
     # use assert statements to check PORT validity AND correct command argument
     assert PORT < PORT_MAX and PORT >= PORT_MIN
-    assert command == str(SERVER) or command == str(CLIENT)
-
-    # redirect to either server or client depending on which one user chooses:
+    assert command == SERVER or CLIENT
     server_program() if command == SERVER else client_program()
 
 if __name__ == "__main__":

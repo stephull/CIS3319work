@@ -40,7 +40,7 @@ EXIT_KEY = "-1"
 
 # lengths of string literals
 DES_KEY_LEN = 8
-HMAC_KEY_LEN = 16
+HMAC_KEY_LEN = 95
 ARGS_LEN = 2
 HASH_LEN = 64
 
@@ -86,8 +86,8 @@ def concat(msg, hash):
 # do the opposite of concatentation after decryption
 def split_contents(resource):
     length = len(resource)
-    return resource[:(length - 64)], resource[(length - 64):]       
-    '''change this later, figure out how to do this correctly!!!'''
+    return resource[:(length - HASH_LEN)], resource[(length - HASH_LEN):]  
+    # takes in the difference of the total length minus the original hash length (64)     
 
 # convert message into encrypted DES key
 def create_DESkey(key):
@@ -111,7 +111,7 @@ def format_msg(recv, *argv):
     # other indicates a party that is opposite from the person sending or receiving
     fluff=" ::::: "
     msg = "Receiver side" if recv else "Sender side"
-    header = f"{fluff}{msg}{fluff}"
+    header = f"\n{fluff}{msg}{fluff}"
 
     print(header)
     if (recv):
@@ -122,11 +122,11 @@ def format_msg(recv, *argv):
         c = argv[3]
         print(f"\t~ Received HMAC: {r}")
         print(f"\t~ Calculated HMAC: {c}")
-        print(f"\t~ HMAC verified: {verify_HMAC(r, c)}")
+        print(f"\t~ HMAC verified: {verify_HMAC(r, c)}\n")
     else:
         # this is the sender's side
         print(f"\t~ Shared DES key: {argv[0]}")
         print(f"\t~ Shared HMAC key: {argv[1]}")
         print(f"\t~ Plain message: {argv[2]}")
         print(f"\t~ Sender's HMAC: {argv[3]}")
-        print(f"\t~ Sent ciphertext: {argv[4]}")
+        print(f"\t~ Sent ciphertext: {argv[4]}\n")

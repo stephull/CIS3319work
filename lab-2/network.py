@@ -3,6 +3,7 @@
 
 from configurations import *
 
+# show the server side of the socket program
 def server_program():
     server_socket = socket(AF_INET, SOCK_STREAM)
     print('\nWelcome! Please wait until client connects...')
@@ -52,17 +53,7 @@ def server_program():
 
     conn.close()
 
-# both sides need to show the following:
-'''
-    * shared keys for HMAC + DES
-    * plaintext and HMAC before concatenation
-    * ciphertext to be sent
-    * received ciphertext
-    * plaintext and HMAC after decryption + separation
-    * receiver calculated HMAC, using HMAC key and received plain msg+
-    * verification result (comparing two HMAC's)
-'''
-
+# show the client side of the program
 def client_program():
     client_socket = socket(AF_INET, SOCK_STREAM)
     client_socket.connect((HOST, PORT))

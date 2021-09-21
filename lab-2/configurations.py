@@ -40,7 +40,7 @@ EXIT_KEY = "-1"
 
 # lengths of string literals
 DES_KEY_LEN = 8
-HMAC_KEY_LEN = 95
+HMAC_KEY_LEN = 16
 ARGS_LEN = 2
 HASH_LEN = 64
 
@@ -130,3 +130,4 @@ def format_msg(recv, *argv):
         print(f"\t~ Plain message: {argv[2]}")
         print(f"\t~ Sender's HMAC: {argv[3]}")
         print(f"\t~ Sent ciphertext: {argv[4]}\n")
+    print(fluff*10)

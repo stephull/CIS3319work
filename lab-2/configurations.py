@@ -59,11 +59,9 @@ OUTPUT_SIZE = 20
 def make_keyfile(file):
     new_path = f"{file}" if os.getcwd() == str(FULL_CWD) else f"{FULL_CWD}/{file}"
     values = string.ascii_letters + string.digits + string.punctuation
-    assert file == DES_FILE or file == HMAC_FILE
+    assert file == DES_FILE or HMAC_FILE
     key_length = DES_KEY_LEN if (file == DES_FILE) else HMAC_KEY_LEN
-
-    resource = ""
-    for i in range(key_length) : resource += random.choice(values)
+    resource = "".join(random.sample(values, key_length))
     with open(new_path, "w") as k:
         k.write(resource)
         k.close()
@@ -71,33 +69,31 @@ def make_keyfile(file):
 HMAC_keyfile = make_keyfile(HMAC_FILE)
 DES_keyfile = make_keyfile(DES_FILE)
 
-'''
-    FYI: the 4 functions below are for theoretical purposes :-)
-    check back on HMAC encryption algorithm and 5/26/22 on my planner.
-    --> HMAC(K,M) = H[(K' XOR opad) || H[(K' XOR ipad) || M ] ]
-'''
-# function for implementing hash function
-def hash(msg):
-    return hashlib.sha256(str.encode(msg)).hexdigest()
-    # QUESTION: is this necessary, or is get_hmac enough?!?
+# read key from open read-file function
+def read_key(keyfile):
+    with open(keyfile, "r") as a:
+        k = a.read().strip()
+        a.close()
+    return k
 
+''' --> HMAC(K,M) = H[(K' XOR opad) || H[(K' XOR ipad) || M ] ] '''
 # function that returns the construction of the HMAC
 def get_hmac(key, input):
     sha = hmac.new(str.encode(key), digestmod=hashlib.sha256)
     sha.update(str.encode(input))
     return sha.hexdigest()
 
-# convert message into encrypted DES key
-def create_DESkey(key):
-    return pyDes.des(key, pyDes.CBC, key, pad=None, padmode=pyDes.PAD_PKCS5)
-
 # for concatentation of message and HMAC before DES
 def concat(msg, hash):
     return str.encode(msg) + str.encode(hash)
 
+# convert message into encrypted DES key
+def create_DESkey(key):
+    return pyDes.des(key, pyDes.CBC, key, pad=None, padmode=pyDes.PAD_PKCS5)
+
 # encrypt or decrypt messages, use DES key as mentioned above, use ENC or DEC
 def descrypt(mode, key, input):
-    assert mode == ENC or mode == DEC
+    assert mode == ENC or DEC
     try: return create_DESkey(key).encrypt(input) if mode == ENC else create_DESkey(key).decrypt(input)
     except: return False
 
@@ -118,16 +114,16 @@ def format_msg(recv, *argv):
     print(header)
     if (recv):
         # this is the receiving side
-        print(f"Received ciphertext: {argv[0]}")
-        print(f"Received message: {argv[1]}")
+        print(f"\t~ Received ciphertext: {argv[0]}")
+        print(f"\t~ Received message: {argv[1]}")
         r = argv[2], c = argv[3]
-        print(f"Recevied HMAC: {r}")
-        print(f"Calculated HMAC: {c}")
-        print(f"HMAC verified: {verify_HMAC(r, c)}")
+        print(f"\t~ Received HMAC: {r}")
+        print(f"\t~ Calculated HMAC: {c}")
+        print(f"\t~ HMAC verified: {verify_HMAC(r, c)}")
     else:
         # this is the sender's side
-        print(f"Shared DES key: {argv[0]}")
-        print(f"Shared HMAC key: {argv[1]}")
-        print(f"Plain message: {argv[2]}")
-        print(f"Sender side HMAC: {argv[3]}")
-        print(f"Sent ciphertext: {argv[4]}")
+        print(f"\t~ Shared DES key: {argv[0]}")
+        print(f"\t~ Shared HMAC key: {argv[1]}")
+        print(f"\t~ Plain message: {argv[2]}")
+        print(f"\t~ Sender's HMAC: {argv[3]}")
+        print(f"\t~ Sent ciphertext: {argv[4]}")

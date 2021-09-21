@@ -1,7 +1,8 @@
 # main.py
 # Includes main executable method
 
-from network import *
+from server import *
+from client import *
 
 def main():
     # check if the number of arguments is correct
@@ -10,6 +11,9 @@ def main():
 
     # use assert statements to check PORT validity AND correct command argument
     assert PORT < PORT_MAX and PORT >= PORT_MIN
+    print(f'Using #{PORT} to connect...')
+
+    # start program :-)
     assert command == SERVER or CLIENT
     server_program() if command == SERVER else client_program()
 

@@ -5,7 +5,8 @@
 # Files (main)
 * main: Main program, executable.
 * configurations:   Constants for all files, holds all imports, and all functionalities/methods.
-* network: client and server socket networking program.
+* client: client socket networking program
+* server: server socket networking program
 
 # Files (other)
 * HMAC.txt: text file for containing HMAC key.

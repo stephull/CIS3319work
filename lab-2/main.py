@@ -1,8 +1,7 @@
 # main.py
 # Includes main executable method
 
-from server import *
-from client import *
+from network import *
 
 def main():
     # check if the number of arguments is correct

@@ -48,10 +48,6 @@ HASH_LEN = 64
 FORMAT_ARGV_MIN = 4
 FORMAT_ARGV_MAX = 5
 
-# size of variables in SHA-256
-BLOCK_SIZE = 64
-OUTPUT_SIZE = 20
-
 '''
     functions
 '''
@@ -87,6 +83,12 @@ def get_hmac(key, input):
 def concat(msg, hash):
     return str.encode(msg) + str.encode(hash)
 
+# do the opposite of concatentation after decryption
+def split_contents(resource):
+    length = len(resource)
+    return resource[:(length - 64)], resource[(length - 64):]       
+    '''change this later, figure out how to do this correctly!!!'''
+
 # convert message into encrypted DES key
 def create_DESkey(key):
     return pyDes.des(key, pyDes.CBC, key, pad=None, padmode=pyDes.PAD_PKCS5)
@@ -94,7 +96,7 @@ def create_DESkey(key):
 # encrypt or decrypt messages, use DES key as mentioned above, use ENC or DEC
 def descrypt(mode, key, input):
     assert mode == ENC or DEC
-    try: return create_DESkey(key).encrypt(input) if mode == ENC else create_DESkey(key).decrypt(input)
+    try: return create_DESkey(key).encrypt(input) if mode == ENC else create_DESkey(key).decrypt(input, padmode=pyDes.PAD_PKCS5)
     except: return False
 
 # verify, once received, that both received and newly calculated HMAC are the same
@@ -116,7 +118,8 @@ def format_msg(recv, *argv):
         # this is the receiving side
         print(f"\t~ Received ciphertext: {argv[0]}")
         print(f"\t~ Received message: {argv[1]}")
-        r = argv[2], c = argv[3]
+        r = argv[2]
+        c = argv[3]
         print(f"\t~ Received HMAC: {r}")
         print(f"\t~ Calculated HMAC: {c}")
         print(f"\t~ HMAC verified: {verify_HMAC(r, c)}")

@@ -1,0 +1,5 @@
+NOT A REAL FILE
+
+Each file will have two lines, looks like this:
+{key}               jUaso822
+{ticket}            ????????

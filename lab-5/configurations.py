@@ -34,6 +34,7 @@ ID_SERV = "CIS3319SERVERID"
 # fixed length values
 ARGS_LEN = 2
 ARGS_LIMITS = range(2,5)    #?
+KEY_LEN = 8
 
 # generated key files
 TXT = ".txt"
@@ -60,6 +61,9 @@ EXIT_KEY = '-1'
 LIFETIME2 = 60
 LIFETIME4 = int(8.64e4)
 
+# other stuff
+INPUT_STR = ">>> "
+
 
 '''
     Functions + other important variables
@@ -68,11 +72,10 @@ LIFETIME4 = int(8.64e4)
 # + double-check for correct redirection in project files
 def check_dir(e) : return e if os.getcwd() == str(FULL_CWD) else f"{FULL_CWD}/{e}"
 def make_keyfile(e):
-    assert e == CLIENT or AUTH or SERV
+    assert e==CLIENT or e==AUTH or e==SERV
     new_path = check_dir(e)
     values = string.ascii_letters + string.digits + string.punctuation
-    keylen = 8  ### for now
-    resource = "".join(random.sample(values, keylen))
+    resource = "".join(random.sample(values, KEY_LEN))
     with open(new_path, "w") as k:
         k.write(resource)
         k.close()
@@ -89,6 +92,15 @@ def read_key(file):
 keyfile_CLIENT = make_keyfile(KEY_CLIENT)
 keyfile_AUTH = make_keyfile(KEY_AUTH)
 keyfile_SERV = make_keyfile(KEY_SERV)
+
+# similarly, make files that show key and ticket for each transaction 
+# between AS <-> C
+def make_retfile():
+    pass
+
+# read from the returning output files with key and ticket
+def read_retfile():
+    pass
 
 # create timestamp (seconds) using UNIX time
 def ts():

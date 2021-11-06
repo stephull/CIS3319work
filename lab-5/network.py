@@ -10,6 +10,15 @@ input_id_client = "Enter the client ID: \n"
 input_id_auth = "Enter the TGS access ID (for auth. server): \n"
 check_ret = "Check in the Results folder for the key and ticket \n"
 
+# important function to determine validity of input
+# i.e. does the input allow for program to continue running?
+def exit_cond(e) : return str(e).lower().strip() != EXIT_KEY
+def pass_input(conn, e):
+    if not exit_cond(e):
+        conn.send(str.encode(EXIT_KEY))
+        return False
+    return True
+
 # client program
 def client_program():
     client_socket = socket(AF_INET, SOCK_STREAM)
@@ -25,31 +34,25 @@ def client_program():
 
     print(f'IMPORTANT: Press    -1  to exit the program when desired.\n\n')
     client_in = input(f'{input_id_client}{INPUT_STR}')
-    while client_in.lower().strip() != EXIT_KEY:
-        # send client ID
-        client_socket.send(str.encode(client_in))
-
-        # send TGS ID if client ID is valid
-        recv_data = conn.recv(RECV_BYTES)
-        respond_client = recv_data.decode()
-        if (respond_client == "0"):
-            print("Client ID incorrect")
-            continue
-        else: print("Client ID successful")
+    while True:
+        # pass client input into client ID var. + also get TGS ID
+        if not pass_input(conn, client_in) : break
+        local_id_client = client_in
         client_in = input(f'{input_id_auth}{INPUT_STR}')
-        client_socket.send(str.encode(client_in))
+        if not pass_input(conn, client_in) : break
+        local_id_auth = client_in
+
+        # send all contents after concat
+        c_to_as_contents = concat(local_id_client, local_id_auth, ts())
+        conn.send(str.encode(c_to_as_contents))
 
         # same thing
         recv_data = conn.recv(RECV_BYTES)
         respond_client = recv_data.decode()
-        if (respond_client == "0"):
-            print("TGS ID incorrect")
-            continue
-        else: print("TGS ID successful")
-
         # ::::::::::: not working code, yet
 
-    client_socket.send(str.encode(EXIT_KEY))
+    #client_socket.send(str.encode(EXIT_KEY))
+        # skip for now
     print(f'{EXIT_KEY} pressed or process killed. Program is now finished.' )
     client_socket.close()
     sys.exit()
@@ -73,8 +76,13 @@ def auth_program():
     while True:
         recv_data = auth_socket.recv(RECV_BYTES)
         from_client = recv_data.decode()
-        if (from_client == EXIT_KEY):
-            break
+        if (from_client == str(EXIT_KEY)):
+            print("Program closed using EXIT KEY. Bye!")
+            auth_socket.close()
+            sys.exit()
+        else:
+            get_contents = confirm_c_to_as(from_client.strip())
+            print("Cool: ",get_contents)
 
     # (1) --> AS party must verify user's access right and create
     # the ticket + session key. Results are encrypted, using key
@@ -86,6 +94,9 @@ def auth_program():
     # request, then creates ticket for requested application server...
 
 # program for the service provider
+'''
+    Todo: WORK ON THIS LATER!!!
+'''
 def serv_program():
     serv_socket = socket(AF_INET, SOCK_STREAM)
     serv_socket.connect((HOST, PORT))

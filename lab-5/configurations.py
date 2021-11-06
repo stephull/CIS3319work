@@ -6,7 +6,7 @@
 '''
     Imports
 '''
-from pyDes import *
+import pyDes
 from _thread import *
 from socket import *
 import string, random, os, sys, time, calendar
@@ -55,7 +55,7 @@ PORT = 8888
 PORT_LIMITS = range(1024, 49151+1)
 BACKLOG = 2
 RECV_BYTES = 1024
-EXIT_KEY = '-1'
+EXIT_KEY = "-1"
 
 # time functions
 LIFETIME2 = 60
@@ -72,7 +72,6 @@ INPUT_STR = ">>> "
 # + double-check for correct redirection in project files
 def check_dir(e) : return e if os.getcwd() == str(FULL_CWD) else f"{FULL_CWD}/{e}"
 def make_keyfile(e):
-    assert e==CLIENT or e==AUTH or e==SERV
     new_path = check_dir(e)
     values = string.ascii_letters + string.digits + string.punctuation
     resource = "".join(random.sample(values, KEY_LEN))
@@ -109,17 +108,26 @@ def ts():
 #print("TEST: ", ts())
 
 # concatentate messages and contents
-def concat(*args) : return "".join(args)
-def split_contents(resource):
-    pass
+def concat(*args):
+    ret = ""
+    for a in args: ret += str(a)
+    return ret
+
+# QUESTION: should we keep the split contents method like last time?
+# for any exchange, confirm that values are correct:
+def confirm_c_to_as(resource):
+    ret1 = str(resource[:len(ID_CLIENT)])
+    ret2 = str(resource[len(ID_CLIENT):len(ID_CLIENT + ID_AUTH)])
+    ret3 = str(resource[len(ID_CLIENT + ID_AUTH):])
+    assert ret1 == ID_CLIENT and ret2 == ID_AUTH, "Client ID and/or TGS ID do not match accordingly"
+    return [ret1, ret2, ret3]
 
 # use DES to encrypt and decrypt contents
-def make_DES(key) : return des(key, CBC, key, pad=None, padmode=PAD_PKCS5)
+def make_DES(key) : return pyDes.des(key, pyDes.CBC, key, pad=None, padmode=pyDes.PAD_PKCS5)
 def descrypt(mode, key, value):
-    assert mode == ENC or DEC
-    try: return make_DES(key).encrypt(value) if mode == ENC else make_DES(key).decrypt(value, padmode=PAD_PKCS5)
+    try: return make_DES(key).encrypt(value) if mode == ENC else make_DES(key).decrypt(value, padmode=pyDes.PAD_PKCS5)
     except: return False
 
 # finally, format message
-def format_print(*args):
+def format_print(file, *args):
     pass

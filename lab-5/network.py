@@ -28,38 +28,43 @@ def client_program():
     client_socket.listen(BACKLOG)
     conn, addr = client_socket.accept()
 
-    if conn : print(f"Connected to TEST server\n(Address: {repr(addr).strip('()')})\n")
+    if conn: 
+        print(f"Connected to TEST server\n(Address: {repr(addr).strip('()')})\n")
+        local_key_auth = read_key(KEY_AUTH)     # ensure C and AS share same key!
+    
     print(f'IMPORTANT: Press    -1  to exit the program when desired.\n\n')
     client_in = input(f'{input_id_client}{INPUT_STR}')
     while True:
+
         # pass client input into client ID var. + also get TGS ID
         if not check_send(conn, client_in) : break
         local_id_client = client_in
-        client_in = input(f'{input_id_auth}{INPUT_STR}')
-        if not check_send(conn, client_in) : break
-        local_id_auth = client_in
+        local_id_auth = input(f'{input_id_auth}{INPUT_STR}')
+        if not check_send(conn, local_id_auth) : break
 
         # send all contents after concat
         c_to_as_contents = concat(local_id_client, local_id_auth, ts())
         conn.send(str.encode(c_to_as_contents))
 
-        # same thing
+        # update: instead of double en/de-cryption, do a verification 
+        # check using the last part of 'resource' and the passed ticket.
         recv_data = conn.recv(RECV_BYTES)
-        local_key_auth = read_key(KEY_AUTH)
+        recv_data2 = conn.recv(RECV_BYTES)
         recv_auth = descrypt(DEC, local_key_auth, recv_data).decode()
         format_print(1, recv_auth)
-        split_recv_auth = split_as_to_c(recv_auth, 
-            local_key_auth, local_id_auth,
-            TS_LEN, str(LIFETIME2))
-        received_ticket = descrypt(DEC, local_key_auth, split_recv_auth)
-        print("RECVTICKET TESTTTTTT: ", descrypt(DEC, local_key_auth, received_ticket))
+        
+        # verify that the ticket is correct using comparison assertion
+        assert split_as_to_c(recv_auth, local_key_auth,
+            local_key_auth, local_id_client,
+            TS_LEN, str(LIFETIME2)
+        ) == repr(recv_data2), "Verification failed: ticket must match from original contents"
+        recv_ticket = descrypt(DEC, local_key_auth, recv_data2)
 
-        # now, for the client to service provider functionalities
-        client_in = input(f'{input_id_serv}{INPUT_STR}')
+        # now, for the client to service provider functionalities, concat and send
+        local_id_serv = input(f'{input_id_serv}{INPUT_STR}')
         if not check_send(conn, client_in) : break
-
-        # concat AND send messages
-        #c_to_v_contents = concat(local_id_serv, )
+        new_authenticator = None
+        c_to_v_contents = concat(local_id_serv, recv_ticket, new_authenticator)
 
         check_send(conn, "-1")
         break       #end early hehe
@@ -86,6 +91,7 @@ def auth_program():
     print(f"{temp}authentication server, connected to client...\n")
 
     while True:
+        local_AUTHkey = read_key(KEY_AUTH)
         recv_data = auth_socket.recv(RECV_BYTES)
         from_client = recv_data.decode()
         if (from_client == str(EXIT_KEY)):
@@ -99,14 +105,18 @@ def auth_program():
         get_tgs_id = get_contents[1]
 
         # generate key and ticket, then send in one overall message
-        local_AUTHkey = read_key(KEY_AUTH)
         new_timestamp = ts()
         c_to_as_ticket = local_AUTHkey + get_client_id + get_tgs_id + \
             str(new_timestamp) + str(LIFETIME2)
-        c_to_as_ticket_des = str(descrypt(ENC, local_AUTHkey, c_to_as_ticket))
+        c_to_as_ticket_des = descrypt(ENC, local_AUTHkey, c_to_as_ticket)
         c_to_as_feedback = local_AUTHkey + get_tgs_id + str(new_timestamp) \
             + str(LIFETIME2) + str(c_to_as_ticket_des)
         auth_socket.send(descrypt(ENC, local_AUTHkey, c_to_as_feedback))
+        auth_socket.send(c_to_as_ticket_des)
+
+        # WAIT until client responds and sends another exchange with service provider ID
+        recv_data = auth_socket.recv(RECV_BYTES)
+        from_client = recv_data.decode()
 
     # the TGS decrypts the ticket+authenticator, verifies
     # request, then creates ticket for requested application server...

@@ -44,11 +44,7 @@ KEY_CLIENT = f"{DIR_KEYS}/key-{CLIENT}{TXT}"
 KEY_AUTH = f"{DIR_KEYS}/key-{AUTH}{TXT}"
 KEY_SERV = f"{DIR_KEYS}/key-{SERV}{TXT}"
 
-# for output files, return both key and ticket (separate lines)
-DIR_RET = "Results"
-RET_AUTH1 = f"{DIR_RET}/ret-{AUTH}1"
-RET_AUTH2 = f"{DIR_RET}/ret-{AUTH}2"
-RET_SERV = f"{DIR_RET}/ret-{SERV}"
+# IMPORTANT: deleted Results, sticking to print msg's only.
 
 # socket programming configurations
 HOST = '127.0.0.1'
@@ -102,15 +98,6 @@ keyfile_CLIENT = make_keyfile(KEY_CLIENT)
 keyfile_AUTH = make_keyfile(KEY_AUTH)
 keyfile_SERV = make_keyfile(KEY_SERV)
 
-# similarly, make files that show key and ticket for each transaction 
-# between AS <-> C
-def make_retfile():
-    pass
-
-# read from the returning output files with key and ticket
-def read_retfile():
-    pass
-
 # create timestamp (seconds) using UNIX time
 def ts():
     timestruct = time.gmtime()
@@ -122,7 +109,6 @@ def concat(*args):
     for a in args: ret += str(a)
     return ret
 
-# QUESTION: should we keep the split contents method like last time?
 # for any exchange, confirm that values are correct:
 def confirm_c_to_as(resource):
     ret1 = str(resource[:len(ID_CLIENT)])
@@ -130,14 +116,20 @@ def confirm_c_to_as(resource):
     ret3 = str(resource[len(ID_CLIENT + ID_AUTH):])
     assert ret1 == ID_CLIENT and ret2 == ID_AUTH, "Client ID and/or TGS ID do not match accordingly"
     return [ret1, ret2, ret3]
-def split_as_to_c(resource, *args):
+def split_as_to_c(resource, key, *args):
     newstr = ""
     newlen = 0
     for a in args: 
         if type(a) == str : newstr += a
         elif type(a) == int : newlen += a
-    # we only want the ticket
-    return resource[newlen + len(newstr):]
+    temp = resource[newlen+len(newstr)-1:]
+    temp.replace("\"", '\'')
+    return temp
+
+# to create authenticators
+def make_authenticator(key, *args):
+    #timestamps will be created here and passed back
+    return
 
 # use DES to encrypt and decrypt contents
 def make_DES(key) : return pyDes.des(key, pyDes.CBC, key, pad=None, padmode=pyDes.PAD_PKCS5)
@@ -147,5 +139,5 @@ def descrypt(mode, key, value):
 
 # format message
 def format_print(n, e):
-    fluff = ":"
-    print(f"\n{fluff*32}\n", po[n], e, f"\n{fluff*32}\n")
+    fluff = ':'*64
+    print(f"\n{fluff}\n", po[n], e, f"\n{fluff}\n")

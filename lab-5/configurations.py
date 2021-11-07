@@ -35,6 +35,7 @@ ID_SERV = "CIS3319SERVERID"
 ARGS_LEN = 2
 ARGS_LIMITS = range(2,5)    #?
 KEY_LEN = 8
+TS_LEN = 10
 
 # generated key files
 TXT = ".txt"
@@ -64,6 +65,15 @@ LIFETIME4 = int(8.64e4)
 # other stuff
 INPUT_STR = ">>> "
 
+# not constants, but still needed here : printouts for all messages for lab
+po = [
+    "1. Received messages, C -> AS:\n", 
+    "2. Plaintext of recieved ciphertext, AS -> C:\n",
+    "3. Received message and Ticket(tgs) validity:\n", 
+    "4. Plaintext of received ciphertext, TGS -> C:\n",
+    "5. Received message and Ticket(v) validity:\n", 
+    "6. Plaintext of received ciphertext, V -> C:\n"
+]
 
 '''
     Functions + other important variables
@@ -105,7 +115,6 @@ def read_retfile():
 def ts():
     timestruct = time.gmtime()
     return calendar.timegm(timestruct)
-#print("TEST: ", ts())
 
 # concatentate messages and contents
 def concat(*args):
@@ -121,6 +130,14 @@ def confirm_c_to_as(resource):
     ret3 = str(resource[len(ID_CLIENT + ID_AUTH):])
     assert ret1 == ID_CLIENT and ret2 == ID_AUTH, "Client ID and/or TGS ID do not match accordingly"
     return [ret1, ret2, ret3]
+def split_as_to_c(resource, *args):
+    newstr = ""
+    newlen = 0
+    for a in args: 
+        if type(a) == str : newstr += a
+        elif type(a) == int : newlen += a
+    # we only want the ticket
+    return resource[newlen + len(newstr):]
 
 # use DES to encrypt and decrypt contents
 def make_DES(key) : return pyDes.des(key, pyDes.CBC, key, pad=None, padmode=pyDes.PAD_PKCS5)
@@ -128,6 +145,7 @@ def descrypt(mode, key, value):
     try: return make_DES(key).encrypt(value) if mode == ENC else make_DES(key).decrypt(value, padmode=pyDes.PAD_PKCS5)
     except: return False
 
-# finally, format message
-def format_print(file, *args):
-    pass
+# format message
+def format_print(n, e):
+    fluff = ":"
+    print(f"\n{fluff*32}\n", po[n], e, f"\n{fluff*32}\n")

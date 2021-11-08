@@ -74,15 +74,18 @@ po = [
 '''
     Functions + other important variables
 '''
-# create key files in advance, before program starts 
+# generate key using string ASCII values
 # + double-check for correct redirection in project files
 def check_dir(e) : return e if os.getcwd() == str(FULL_CWD) else f"{FULL_CWD}/{e}"
+def stream_key():
+    values = string.ascii_letters + string.digits + string.punctuation
+    return "".join(random.sample(values, KEY_LEN))
+
+# create key files 
 def make_keyfile(e):
     new_path = check_dir(e)
-    values = string.ascii_letters + string.digits + string.punctuation
-    resource = "".join(random.sample(values, KEY_LEN))
     with open(new_path, "w") as k:
-        k.write(resource)
+        k.write(stream_key())
         k.close()
     return new_path
 
@@ -97,6 +100,7 @@ def read_key(file):
 keyfile_CLIENT = make_keyfile(KEY_CLIENT)
 keyfile_AUTH = make_keyfile(KEY_AUTH)
 keyfile_SERV = make_keyfile(KEY_SERV)
+
 
 # create timestamp (seconds) using UNIX time
 def ts():
@@ -125,11 +129,17 @@ def split_as_to_c(resource, key, *args):
     temp = resource[newlen+len(newstr)-1:]
     temp.replace("\"", '\'')
     return temp
+def split_c_to_v():
+    pass
+
+# print results to Results file
+def send_results():
+    pass
 
 # to create authenticators
-def make_authenticator(key, *args):
+def make_authenticator(key, id):
     #timestamps will be created here and passed back
-    return
+    return descrypt(ENC, key, id+str(ts()))
 
 # use DES to encrypt and decrypt contents
 def make_DES(key) : return pyDes.des(key, pyDes.CBC, key, pad=None, padmode=pyDes.PAD_PKCS5)

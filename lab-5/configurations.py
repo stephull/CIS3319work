@@ -35,7 +35,6 @@ ID_SERV = "CIS3319SERVERID"
 
 # fixed length values
 ARGS_LEN = 2
-ARGS_LIMITS = range(2,5)    #?
 KEY_LEN = 8
 TS_LEN = 10
 
@@ -67,15 +66,11 @@ LIFETIME4 = int(8.64e4)
 INPUT_STR = ">>> "
 
 # not constants, but still needed here : printouts for all messages for lab
-po = [
-    "1. Received messages, C -> AS:\n", 
+po = [  "1. Received messages, C -> AS:\n", 
     "2. Plaintext of recieved ciphertext, AS -> C:\n",
     "3. Received message and Ticket(tgs) validity:\n", 
     "4. Plaintext of received ciphertext, TGS -> C:\n",
-    "5. Received message and Ticket(v) validity:\n", 
-    "6. Plaintext of received ciphertext, V -> C:\n"
-]
-
+    "5. Received message and Ticket(v) validity:\n" ]
 temp = "\n>>> Log:    Start "
 input_id_client = "Enter the client ID: \n"
 input_id_auth = "Enter the TGS access ID (for auth. server): \n"
@@ -121,7 +116,6 @@ keyfile_CLIENT = make_keyfile(KEY_CLIENT)
 keyfile_AUTH = make_keyfile(KEY_AUTH)
 keyfile_SERV = make_keyfile(KEY_SERV)
 
-
 # create timestamp (seconds) using UNIX time
 def ts():
     timestruct = time.gmtime()
@@ -159,9 +153,8 @@ def make_authenticator(key, id, t) : return descrypt(ENC, key, id+str(t))
 
 # use DES to encrypt and decrypt contents
 def make_DES(key) : return pyDes.des(key, pyDes.CBC, key, pad=None, padmode=pyDes.PAD_PKCS5)
-def descrypt(mode, key, value):
-    try: return make_DES(key).encrypt(value) if mode == ENC else make_DES(key).decrypt(value, padmode=pyDes.PAD_PKCS5)
-    except: return False
+def descrypt(mode, key, value) : 
+    return make_DES(key).encrypt(value) if mode == ENC else make_DES(key).decrypt(value, padmode=pyDes.PAD_PKCS5)
 
 # format message
 def format_print(n, *args):

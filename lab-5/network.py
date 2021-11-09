@@ -17,7 +17,7 @@ def client_program():
 
     if conn: 
         print(f"Connected to TEST server\n(Address: {repr(addr).strip('()')})\n")
-        local_key_client = read_key(KEY_CLIENT)     # ensure C and AS share same key!
+        local_key_client = read_key(KEY_CLIENT)
         local_key_auth = read_key(KEY_AUTH)
         local_key_serv = read_key(KEY_SERV)
     
@@ -55,8 +55,7 @@ def client_program():
         valid_key = (local_key_client == confirm_key_c_as)
         if valid_ticket and valid_key:
             print("\nTicket verification is valid")
-        else: 
-            print("\nVerification is invalid. Restarting..."); break
+        else : print("\nVerification is invalid. Restarting..."); break
     
         # now, for the client to service provider functionalities, concat and send
         local_id_serv = input(f'{input_id_serv}{INPUT_STR}')
@@ -71,7 +70,7 @@ def client_program():
         conn.send(str.encode("Ticket validity: " + str(valid_ticket)))
 
         # WAIT until TGS is finished 
-
+        
         recv_tgs = conn.recv(RECV_BYTES)
         recv_tgs_ticket = conn.recv(RECV_BYTES)
         returned_tgs = descrypt(DEC, recv_stream_key1, recv_tgs).decode()
@@ -89,12 +88,9 @@ def client_program():
         valid_key_c_v = (confirm_key_c_v == local_key_client)
         if valid_ticket_c_v and valid_key_c_v:
             print("\nTicket verification is valid")  
-        else:
-            print("\nVerification is invalid. Restarting..."); break
+        else : print("\nVerification is invalid. Restarting..."); break
         
-        # (5th exchange)
-        # IMPORTANT: at this point, we need to send the following in a new system
-        # (service provider)
+        # (5th exchange) service provider
         ts5 = ts()
         new_authenticator2 = make_authenticator(recv_stream_key2, local_id_client, ts5)
         c_v_contents = concat(returned_tgs_ticket, new_authenticator2)
@@ -102,10 +98,9 @@ def client_program():
         
         # finalize everything
         v_to_c = conn.recv(RECV_BYTES)
-        print(f"\nService granted\n{v_to_c}\n")
-        
+        print(f"\nService granted...\n({v_to_c})\n")
         break
-
+    
     print(f'\n{EXIT_KEY} pressed or process killed. Program is now finished.\n' )
     client_socket.close()
     sys.exit()
@@ -125,11 +120,6 @@ def server_program():
     local_SERVkey = read_key(KEY_SERV)
 
     from_client_to_as = auth_socket.recv(RECV_BYTES).decode()
-    if (from_client_to_as == str(EXIT_KEY)):
-        print("Program closed using EXIT KEY. Bye!")
-        auth_socket.close()
-        sys.exit()
-        
     format_print(0, from_client_to_as)
     get_contents = confirm_c_to_as(from_client_to_as)
     get_client_id = get_contents[0]
@@ -145,7 +135,6 @@ def server_program():
         str(LIFETIME2), str(c_to_as_ticket))
     
     # before sending, we also should place the ticket and key in a Results file
-    # and let user know of transition from AS to TGS
     # (2nd exchange)
     write_to_results(RET_1, c_to_as_t, local_CLIENTkey)
     print(f"\n{temp}SWITCHING TO TGS...\n")
@@ -167,20 +156,18 @@ def server_program():
         get_serv_id, str(ts3), str(LIFETIME4))
     c_to_tgs_ticket = descrypt(ENC, local_SERVkey, c_to_tgs_t)
     write_to_results(RET_2, c_to_tgs_t, local_CLIENTkey)
-
+    print(f"\n{temp}SWITCHING TO SERVICE PROVIDER...\n")
     ts4 = ts()
     tgs_to_c_feedback = concat(stream_c_v_key, get_serv_id,
         str(ts4), str(c_to_tgs_ticket))       
     auth_socket.send(descrypt(ENC, stream_c_as_key, tgs_to_c_feedback))
     auth_socket.send(c_to_tgs_ticket)
-    
-    # WAIT
-    
+
+    # going into the last (6th) exchange
     c_v_recv = auth_socket.recv(RECV_BYTES).decode()
+    format_print(4, c_v_recv)
     index = KEY_LEN+len(ID_CLIENT)+len(ID_SERV)
     c_v_ts = c_v_recv[index:index+TS_LEN]
-    
-    # (6th exchange)
     auth_socket.send(descrypt(ENC, stream_c_v_key, str(int(c_v_ts)+1)))
     
     # finished 

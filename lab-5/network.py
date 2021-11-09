@@ -4,23 +4,19 @@
 '''
 from configurations import *
 
-# instructions for every program
 temp = "\n>>> Log:    Start "
 input_id_client = "Enter the client ID: \n"
 input_id_auth = "Enter the TGS access ID (for auth. server): \n"
 input_id_serv = "Enter the service provider ID: \n"
-ticket_c_as = "Confirm ticket to proceed: \n"
-key_c_as = "Enter key given to proceed: \n"
-ticket_c_v = "Confirm ticket to proceed: \n"
-key_c_v = "Enter key given to proceed: \n"
+ticket_c_as = "Confirm ticket to proceed to TGS: \n"
+key_c_as = "Enter key given to proceed to TGS: \n"
+ticket_c_v = "Confirm ticket to proceed to service provider: \n"
+key_c_v = "Enter key given to proceed to service provider: \n"
 
-# does the input allow for program to continue running?
-def check_send(conn, e):
-    if str(e).lower().strip() != EXIT_KEY : return True
-    conn.send(str.encode(EXIT_KEY))
-    return False
 
-# client program
+'''
+    Main, client program; used to begin execution
+'''
 def client_program():
     client_socket = socket(AF_INET, SOCK_STREAM)
     print(f'{temp}client. Waiting for servers to connect to program...\n')
@@ -45,7 +41,7 @@ def client_program():
         local_id_auth = input(f'{input_id_auth}{INPUT_STR}')
         if not check_send(conn, local_id_auth) : break
 
-        # send all contents after concat
+        # send all contents after concat (1st exchange)
         c_to_as_contents = concat(local_id_client, local_id_auth, ts())
         conn.send(str.encode(c_to_as_contents))
 
@@ -57,52 +53,64 @@ def client_program():
         recv_data2 = conn.recv(RECV_BYTES)
         recv_as = descrypt(DEC, local_key_client, recv_data).decode()
         format_print(1, recv_as)
+        recv_ticket = descrypt(DEC, local_key_auth, recv_data2).decode()
+        recv_stream_key1 = recv_as[:KEY_LEN]
         
         # verify that the ticket is correct using comparison assertion
-        assert split_as_to_c(recv_as, local_key_auth,
-            local_key_client, local_id_client,
-            TS_LEN, str(LIFETIME2)
-        ) == repr(recv_data2), "Verification failed: ticket must match from original contents"
-        
-        #recv_ticket = descrypt(DEC, local_key_auth, recv_data2)
-        # computer validates ticket, does user know the ticket?
-        c_to_as_ticket_confirm = input(f"{ticket_c_as}{INPUT_STR}")
-        c_to_as_key_confirm = input(f"{key_c_as}{INPUT_STR}")
-
+        # and user must do the same via input
+        confirm_ticket_c_as = input(f'{ticket_c_as}{INPUT_STR}')
+        if not check_send(conn, confirm_ticket_c_as) : break
+        valid_ticket = (recv_ticket == confirm_ticket_c_as)  
+        confirm_key_c_as = input(f'{key_c_as}{INPUT_STR}')
+        if not check_send(conn, confirm_key_c_as) : break
+        valid_key = (local_key_client == confirm_key_c_as)
+        print("\nTicket verification is valid" if valid_ticket and valid_key else "\nVerification is invalid")
+    
         # now, for the client to service provider functionalities, concat and send
         local_id_serv = input(f'{input_id_serv}{INPUT_STR}')
-        if not check_send(conn, client_in) : break
-        new_authenticator = make_authenticator(local_key_client, local_id_client)
+        if not check_send(conn, local_id_serv) : break
+        new_authenticator = make_authenticator(recv_stream_key1, local_id_client)
+            # new timestamp is created within authenticator creation
+            
+        # (3rd exchange)
         c_to_v_contents = concat(local_id_serv, recv_data2, new_authenticator)
         conn.send(str.encode(c_to_v_contents))
+        conn.send(str.encode("Ticket validity: " + str(valid_ticket)))
 
         # WAIT until TGS is finished 
 
-        recv_data = conn.recv(RECV_BYTES)
-        #recv_tgs = descrypt(DEC, None, recv_data).decode()
-            # change 'None' later
+        recv_tgs = conn.recv(RECV_BYTES)
+        print("This far: ", recv_tgs)
+        returned_tgs = descrypt(DEC, None, recv_tgs).decode()
+        print("That far: ", returned_tgs)
+        recv_tgs_ticket = conn.recv(RECV_BYTES)
+        returned_tgs_ticket = descrypt(DEC, None, recv_tgs_ticket).decode()
+        
+        # (5th exchange)
 
-        check_send(conn, "-1")
-        break       #end early hehe
+        check_send(conn, "-1"); break       #end, hehe
 
-    #client_socket.send(str.encode(EXIT_KEY))
-        # skip for now
+    #client_socket.send(str.encode(EXIT_KEY))   # skip for now?
     print(f'{EXIT_KEY} pressed or process killed. Program is now finished.' )
     client_socket.close()
     sys.exit()
 
-    # ...
 
-# program for the authentication server
+'''
+    Program for the authentication server
+    Used for both the AS and the TGS (ticket-granting server)
+'''
 def auth_program():
     auth_socket = socket(AF_INET, SOCK_STREAM)
     auth_socket.connect((HOST, PORT)) 
     print(f"{temp}authentication server, connected to client...\n")
 
+    local_CLIENTkey = read_key(KEY_CLIENT)
+    local_AUTHkey = read_key(KEY_AUTH)
+    local_SERVkey = read_key(KEY_SERV)
+
     while True:
-        local_CLIENTkey = read_key(KEY_CLIENT)
-        recv_data = auth_socket.recv(RECV_BYTES)
-        from_client_to_as = recv_data.decode()
+        from_client_to_as = auth_socket.recv(RECV_BYTES).decode()
         if (from_client_to_as == str(EXIT_KEY)):
             print("Program closed using EXIT KEY. Bye!")
             auth_socket.close()
@@ -114,7 +122,6 @@ def auth_program():
         get_tgs_id = get_contents[1]
 
         # generate key and ticket, then send in one overall message
-        local_AUTHkey = read_key(KEY_AUTH)
         new_timestamp = ts()
         stream_c_as_key = stream_key()
         c_to_as_t = concat(stream_c_as_key, get_client_id, get_tgs_id,
@@ -122,26 +129,50 @@ def auth_program():
         c_to_as_ticket = descrypt(ENC, local_AUTHkey, c_to_as_t)
         c_to_as_feedback = concat(stream_c_as_key, get_tgs_id, str(new_timestamp),
             str(LIFETIME2), str(c_to_as_ticket))
+        
+        # before sending, we also should place the ticket and key in a Results file
+        # and let user know of transition from AS to TGS
+        # (2nd exchange)
+        write_to_results(RET_1, c_to_as_t, local_CLIENTkey)
+        print(f"\n{temp}SWITCHING TO TGS...\n")
         auth_socket.send(descrypt(ENC, local_CLIENTkey, c_to_as_feedback))
         auth_socket.send(c_to_as_ticket)
 
         # WAIT until client responds and sends another exchange with service provider ID
-        recv_data = auth_socket.recv(RECV_BYTES)
-        from_client_to_tgs = recv_data.decode()
-        get_serv_id = split_c_to_v()
+        from_client_to_tgs = auth_socket.recv(RECV_BYTES).decode()
+        ticket_valid = auth_socket.recv(RECV_BYTES).decode()        
+        format_print(2, from_client_to_tgs, '\n', ticket_valid)
+        
+        get_serv_id = split_c_to_v(from_client_to_tgs)
+        assert get_serv_id.strip() == ID_SERV, "\nService provider ID is not valid, try again."
 
-        # create ticket for service provider
-        local_SERVkey = read_key(KEY_SERV)
+        # create ticket for service provider (4th exchange)
         stream_c_v_key = stream_key()
-        c_to_tgs_t = concat(stream_c_v_key, )
+        ts3 = ts()
+        c_to_tgs_t = concat(stream_c_v_key, get_client_id,
+            get_serv_id, str(ts3), str(LIFETIME4))
+        c_to_tgs_ticket = descrypt(ENC, local_SERVkey, c_to_tgs_t)
+        write_to_results(RET_2, c_to_tgs_t, stream_c_v_key)
+
+        ts4 = ts()
+        tgs_to_c_feedback = concat(stream_c_v_key, get_serv_id,
+            ts4, c_to_tgs_ticket)
+        print('Pre:', tgs_to_c_feedback)
+        
+        auth_socket.send(descrypt(ENC, stream_c_as_key, tgs_to_c_feedback))
+        auth_socket.send(c_to_tgs_ticket)
 
         # get diff. of current time and received time, 
-        # and compare it to the lifetime of ticket
-
+        # and compare it to the lifetime of ticket //
         # the TGS decrypts the ticket + authenticator, verifies
         # request; creates ticket for requested application server...
+        
+        check_send(auth_socket, "-1"); break
+        
 
-# program for the service provider
+'''
+    Program for service provider
+'''
 def serv_program():
     serv_socket = socket(AF_INET, SOCK_STREAM)
     serv_socket.connect((HOST, PORT))

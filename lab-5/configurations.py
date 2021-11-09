@@ -7,7 +7,6 @@
     Imports
 '''
 import pyDes
-from _thread import *
 from socket import *
 import string, random, os, sys, time, calendar
 
@@ -44,7 +43,10 @@ KEY_CLIENT = f"{DIR_KEYS}/key-{CLIENT}{TXT}"
 KEY_AUTH = f"{DIR_KEYS}/key-{AUTH}{TXT}"
 KEY_SERV = f"{DIR_KEYS}/key-{SERV}{TXT}"
 
-# IMPORTANT: deleted Results, sticking to print msg's only.
+# generate Results
+DIR_RET = "Results"
+RET_1 = f"{DIR_RET}/results-{AUTH}{TXT}"
+RET_2 = f"{DIR_RET}/results-{SERV}{TXT}"
 
 # socket programming configurations
 HOST = '127.0.0.1'
@@ -74,6 +76,12 @@ po = [
 '''
     Functions + other important variables
 '''
+# does the input allow for program to continue running?
+def check_send(conn, e):
+    if str(e).lower().strip() != EXIT_KEY : return True
+    conn.send(str.encode(EXIT_KEY))
+    return False
+
 # generate key using string ASCII values
 # + double-check for correct redirection in project files
 def check_dir(e) : return e if os.getcwd() == str(FULL_CWD) else f"{FULL_CWD}/{e}"
@@ -83,11 +91,11 @@ def stream_key():
 
 # create key files 
 def make_keyfile(e):
-    new_path = check_dir(e)
-    with open(new_path, "w") as k:
+    path = check_dir(e)
+    with open(path, "w") as k:
         k.write(stream_key())
         k.close()
-    return new_path
+    return path
 
 # read key from key file
 def read_key(file):
@@ -120,21 +128,19 @@ def confirm_c_to_as(resource):
     ret3 = str(resource[len(ID_CLIENT + ID_AUTH):])
     assert ret1 == ID_CLIENT and ret2 == ID_AUTH, "Client ID and/or TGS ID do not match accordingly"
     return [ret1, ret2, ret3]
-def split_as_to_c(resource, key, *args):
-    newstr = ""
-    newlen = 0
-    for a in args: 
-        if type(a) == str : newstr += a
-        elif type(a) == int : newlen += a
-    temp = resource[newlen+len(newstr)-1:]
-    temp.replace("\"", '\'')
-    return temp
-def split_c_to_v():
-    pass
+def split_c_to_v(resource):
+    for i in range(len(resource)):
+        if resource[i] == 'b' and (resource[i+1] == "\'" or "\""):
+            return resource[0:i].strip()
+    return resource.strip()
 
 # print results to Results file
-def send_results():
-    pass
+def write_to_results(e, t, k):
+    with open(check_dir(e), "w") as op:
+        op.write(t)
+        op.write('\n')
+        op.write(k)
+        op.close()
 
 # to create authenticators
 def make_authenticator(key, id):
@@ -148,6 +154,8 @@ def descrypt(mode, key, value):
     except: return False
 
 # format message
-def format_print(n, e):
+def format_print(n, *args):
     fluff = ':'*64
+    e = ""
+    for a in args : e += (a + "\n")
     print(f"\n{fluff}\n", po[n], e, f"\n{fluff}\n")

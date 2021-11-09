@@ -8,7 +8,9 @@
 '''
 import pyDes
 from socket import *
-import string, random, os, sys, time, calendar
+import string, random
+import os, sys
+import time, calendar
 
 '''
     Constants
@@ -18,6 +20,7 @@ FULL_CWD = f'C:/Users/shull/OneDrive/Desktop/School/FALL 2021/CIS 3319/CIS3319wo
 
 # arguments for execution
 CLIENT = "client"
+SERVER = "server"
 AUTH = "auth"
 SERV = "serv"
 
@@ -72,6 +75,15 @@ po = [
     "5. Received message and Ticket(v) validity:\n", 
     "6. Plaintext of received ciphertext, V -> C:\n"
 ]
+
+temp = "\n>>> Log:    Start "
+input_id_client = "Enter the client ID: \n"
+input_id_auth = "Enter the TGS access ID (for auth. server): \n"
+input_id_serv = "Enter the service provider ID: \n"
+ticket_c_as = "Confirm ticket to proceed to TGS: \n"
+key_c_as = "Enter key given to proceed to TGS: \n"
+ticket_c_v = "Confirm ticket to proceed to service provider: \n"
+key_c_v = "Enter key given to proceed to service provider: \n"
 
 '''
     Functions + other important variables

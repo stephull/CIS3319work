@@ -143,9 +143,7 @@ def write_to_results(e, t, k):
         op.close()
 
 # to create authenticators
-def make_authenticator(key, id):
-    #timestamps will be created here and passed back
-    return descrypt(ENC, key, id+str(ts()))
+def make_authenticator(key, id, t) : return descrypt(ENC, key, id+str(t))
 
 # use DES to encrypt and decrypt contents
 def make_DES(key) : return pyDes.des(key, pyDes.CBC, key, pad=None, padmode=pyDes.PAD_PKCS5)

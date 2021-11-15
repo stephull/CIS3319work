@@ -29,7 +29,7 @@ CA = "ca"
 ARGS_LEN = 2
 TS_LEN = 10
 KEY_LEN = 8
-PRIME_LEN = 3
+PRIME_LIM = 4
 PRIME_LOG = 3
 
 TXT = ".txt"
@@ -54,24 +54,29 @@ PORT_LIM = range(1024, 49151+1)
 RECV_BYTES = 1024
 BACKLOG = 2
 EXIT_KEY = '-1'
-
 SLEEP_LOG = 0.1
+
 INPUT_STR = ">>> "
-PO = {
-    "1. Ciphertext and generated K(tmp1)", # S
-    "1. Ciphertext and received K(tmp1)",  # CA
-    "2. Ciphertext, generated key pair, and Cert(s) generated",     # CA
-    "2. Ciphertext, received key pair, and Cert(s) received",       # S
-    "3. Plaintext", # both sides
-    "4. Plaintext", # both sides
-    "5. Ciphertext, generated K(tmp2)", # C
-    "5. Ciphertext, received K(tmp2)",  # S
-    "6. Ciphertext, generated K(sess)",  # S
-    "6. Ciphertext, received K(sess)",   # C
-    "7. Ciphertext, receieved req message", # on S side
-    "8. Ciphertext, received data message"
-        # 12 total messages, 8 steps (1,2,5,6 double)
-}
+ERROR_MSG_PRIME = "\nERROR: primality test calculates out of bounds\n"
+PO = [[
+        "1. Ciphertext and generated K(tmp1)", # S
+        "1. Ciphertext and received K(tmp1)"  # CA 
+    ], [
+        "2. Ciphertext, generated key pair, and Cert(s) generated",     # CA
+        "2. Ciphertext, received key pair, and Cert(s) received"       # S
+    ], [
+        "3. Plaintext", "4. Plaintext" # both sides
+    ], [
+        "5. Ciphertext, generated K(tmp2)", # C
+        "5. Ciphertext, received K(tmp2)"  # S 
+    ], [
+        "6. Ciphertext, generated K(sess)",  # S
+        "6. Ciphertext, received K(sess)"   # C
+    ], [
+        "7. Ciphertext, receieved req message", # on S side
+        "8. Ciphertext, received data message"
+    ]       # PO[][], PO[2] and PO[5] are unique.
+]
 
 
 '''
@@ -84,10 +89,12 @@ def check_dir(e) : return f"{FULL_CWD}/{e}" if os.getcwd() != str(FULL_CWD) else
 def stream_key():
     val = st.digits+st.ascii_letters+st.punctuation
     return "".join(r.sample(val, KEY_LEN))
-def write_key(e):
+def write_key(e, content=None):
     path = check_dir(e)
     with open(path, "w") as k: 
-        k.write(stream_key()); k.close()
+        if content==None : k.write(stream_key())
+        else : k.write(content)
+        k.close()
     return path
 def read_key(e):
     with open(check_dir(e), "r") as a: 
@@ -115,46 +122,6 @@ def split(e):
 def make_des(k) : return pyDes.des(k, pyDes.CBC, k, pad=None, padmode=pyDes.PAD_PKCS5)
 def descrypt(mod, k, e):
     return make_des(k).encrypt(e) if mod==ENC else make_des(k).decrypt(e, padmode=pyDes.PAD_PKCS5)
-
-# AKS primality test for generating p and q in RSA
-c = [0] * int(math.pow(10, PRIME_LEN))
-def primality_test(n):
-    c[0] = 1
-    for i in range(n):
-        c[i+1] = 1
-        for j in range(i, 0, -1):
-            c[j] = c[j-1] - c[j]
-        c[0] = -c[0]
-    c[0] += 1
-    c[n] -= 1
-    i = n
-    while (i > -1 and c[i] % n == 0) : i -= 1
-    return True if i < 0 else False
-
-# use RSA encryption
-def rsa_signature(e):
-    pass
-def rsacrypt(mod, k, e):    # more info here: https://www.pythonpool.com/rsa-encryption-python/
-    assert mod==ENC or mod==DEC
-    if (mod == ENC):
-        count = 0; a = 0; b = 0
-        try:
-            while (count < 2):
-                x = r.randint(1, pow(10, PRIME_LOG))
-                if (primality_test(x)):
-                    if (a > 0): b = x
-                    else: a = x
-                    count += 1
-                print("a and b: ", a, " :: ", b)
-                time.sleep(SLEEP_LOG)
-        except : print("An error occured while calculating prime numbers")
-        n = a*b
-        print("n: ", n)
-        
-        return
-    else:
-        
-        return
 
 # print contents onto console
 def console_log(n, *args):

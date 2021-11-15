@@ -1,3 +1,7 @@
+'''
+    Server program: for server
+'''
+
 from configurations import *
 
 def serverProgram():
@@ -9,6 +13,10 @@ def serverProgram():
     
     while True:
         conn, addr = s_socket.accept()
+        if conn:    print("\nUPDATE: Connected to client...\n")
+        
+        
+        # https://www.positronx.io/create-socket-server-with-multiple-clients-in-python/
     
     s_socket.close()
     sys.exit()

@@ -26,13 +26,20 @@ CLIENT = "client"
 SERVER = "server"
 CA = "ca"
 
-ARGS_LEN = 3
+ARGS_LEN = 2
 TS_LEN = 10
 KEY_LEN = 8
 PRIME_LEN = 3
+PRIME_LOG = 3
 
 TXT = ".txt"
-DIR_KEYS = "Keys"
+DIR_KEYS = "Keys/"
+CA_PUB_KEY = f"{DIR_KEYS}ca_public_key{TXT}" #PK(ca)
+S_PUB_KEY = f"{DIR_KEYS}s_public_key{TXT}"   #PK(s)
+RSA_PUB_KEY = f"{DIR_KEYS}rsa_public_key{TXT}"
+DES_SESS_KEY = f"{DIR_KEYS}des_sess_key{TXT}"
+TEMP1_KEY = f"{DIR_KEYS}temp1_key{TXT}"
+TEMP2_KEY = f"{DIR_KEYS}temp2_key{TXT}"
 
 ID_CA = "ID-CA"
 ID_C = "ID-client"
@@ -48,6 +55,7 @@ RECV_BYTES = 1024
 BACKLOG = 2
 EXIT_KEY = '-1'
 
+SLEEP_LOG = 0.1
 INPUT_STR = ">>> "
 PO = {
     "1. Ciphertext and generated K(tmp1)", # S
@@ -70,22 +78,27 @@ PO = {
     Functions
 '''
 # check for directory of project
-def check_dir(e): 
-    return f"{FULL_CWD}/{e}" if os.getcwd() != str(FULL_CWD) else e
+def check_dir(e) : return f"{FULL_CWD}/{e}" if os.getcwd() != str(FULL_CWD) else e
 
 # generate key through files or by themselves
 def stream_key():
     val = st.digits+st.ascii_letters+st.punctuation
     return "".join(r.sample(val, KEY_LEN))
-
-# make key files and read for local usage
 def write_key(e):
     path = check_dir(e)
-    with open(path, "w") as k : k.write(stream_key()); k.close()
+    with open(path, "w") as k: 
+        k.write(stream_key()); k.close()
     return path
 def read_key(e):
-    with open(check_dir(e), "r") as a : k = a.read().strip(); a.close()
+    with open(check_dir(e), "r") as a: 
+        k = a.read().strip(); a.close()
     return k
+
+# generate key files for program use
+ca_pub_keyfile = write_key(CA_PUB_KEY)
+s_pub_keyfile = write_key(S_PUB_KEY)
+temp1_des_keyfile = write_key(TEMP1_KEY)
+temp2_des_keyfile = write_key(TEMP2_KEY)
 
 # make timestamp
 def ts() : return ca.timegm(time.gmtime())
@@ -99,12 +112,12 @@ def split(e):
     pass
 
 # DES encryption
-def make_des(k, e) : return pyDes.des(k, pyDes.CBC, k, pad=None, padmode=pyDes.PAD_PKCS5)
+def make_des(k) : return pyDes.des(k, pyDes.CBC, k, pad=None, padmode=pyDes.PAD_PKCS5)
 def descrypt(mod, k, e):
     return make_des(k).encrypt(e) if mod==ENC else make_des(k).decrypt(e, padmode=pyDes.PAD_PKCS5)
 
-# AKS primality test forgenerating p and q in RSA
-c = [0] * math.pow(10, PRIME_LEN)
+# AKS primality test for generating p and q in RSA
+c = [0] * int(math.pow(10, PRIME_LEN))
 def primality_test(n):
     c[0] = 1
     for i in range(n):
@@ -121,11 +134,22 @@ def primality_test(n):
 # use RSA encryption
 def rsa_signature(e):
     pass
-def rsacrypt(mod, k, e):
+def rsacrypt(mod, k, e):    # more info here: https://www.pythonpool.com/rsa-encryption-python/
     assert mod==ENC or mod==DEC
-    # more info here: https://www.pythonpool.com/rsa-encryption-python/
-    
     if (mod == ENC):
+        count = 0; a = 0; b = 0
+        try:
+            while (count < 2):
+                x = r.randint(1, pow(10, PRIME_LOG))
+                if (primality_test(x)):
+                    if (a > 0): b = x
+                    else: a = x
+                    count += 1
+                print("a and b: ", a, " :: ", b)
+                time.sleep(SLEEP_LOG)
+        except : print("An error occured while calculating prime numbers")
+        n = a*b
+        print("n: ", n)
         
         return
     else:

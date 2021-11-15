@@ -1,9 +1,16 @@
+'''
+    Client program
+'''
+
 from configurations import *
 
 def clientProgram():
     print("Starting client program...")
     c_socket = socket(AF_INET, SOCK_STREAM)
     c_socket.connect((HOST, PORT))
+    
+    # TEST
+    rsacrypt(ENC, 0, 0)
     
     # send input
     c_msg = input(INPUT_STR)

@@ -12,9 +12,7 @@ def main():
     assert len(sys.argv) == ARGS_LEN, f"Argument length must be {ARGS_LEN} arguments long, after python3."
     comm = sys.argv[1]
     assert comm==CLIENT or comm==SERVER or comm==CA, f"Must pick the following options: \n{CLIENT}\n{CA}\n{SERVER}"
-    if comm == CLIENT: clientProgram()
-    elif comm == CA: certAuthProgram()
-    else: serverProgram()
+    clientProgram() if comm == CLIENT else certAuthProgram() if comm == CA else serverProgram()
 
 if __name__ == "__main__":
     main()

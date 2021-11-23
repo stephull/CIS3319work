@@ -14,30 +14,41 @@ def serverProgram():
     
     while True:
         conn, addr = s_socket.accept()
-        if conn:    print("\nUPDATE: Connected to client...\n")
+        if conn:
+            priv_s_rsa_key = begin_rsa()
+            # Note that this is only required for RSA stuff, not mentioned in lab protocol
+            #, "\n\nERROR: RSA private key formulation is broken, sorry. Try again!\n"
+            print("\nUPDATE: Connected to client...\n")
         
         # SEND first exchange: S -> CA
         # >> RSA(PKca) [K(tmp1) || ID(s) || TS1], K(tmp1) generates on S
+        local_key_temp1 = stream_key()
+        exchange1_contents = concat(local_key_temp1, ID_S, str(ts()))
+        exchange1_digits = digitize_text(ENC, exchange1_contents)
+        print(exchange1_digits)
+        
+        pub_rsa_key = read_key(RSA_PUB_KEY, True)   # returns n and e, respectively
+        s1_send_msg = rsacrypt(ENC, pub_rsa_key[0], pub_rsa_key[1], exchange1_digits)   # P^e mod n --> C
+        
+        # https://www.geeksforgeeks.org/python-interconvert-tuple-to-byte-integer/
+        conn.send(str(priv_s_rsa_key[0]).encode())
+        conn.send(str(priv_s_rsa_key[1]).encode())
+        conn.recv(RECV_BYTES)
+        conn.send(str(s1_send_msg).encode())
         
         # RECV second exchange: CA -> S
-        # >> DES(Ktmp1) [PK(s) || SK(s) || Cert(s)|| ID(s) || TS2]
-        # >> >> Cert(s) = Sign(SKca) [ID(s) || ID(ca) || PK(s)]
-        # >> >> Sign(SKca) is RSA signature generation with specified private key
         
         # RECV third exchange: C -> S
-        # >> ID(s) || TS3
         
         # SEND fourth exchange: S -> C
         # >> PK(s) || Cert(s) || TS4
         
         # RECV fifth exchange: C -> S
-        # >> RSA(PKs) [K(tmp2) || ID(c) || IP(c) || Port(c) || TS5], generate K(tmp2) on C
         
         # SEND sixth exchange: S -> C
         # >> DES(Ktmp2) [K(sess) || LT(sess) || ID(c) || TS6]
         
         # RECV seventh exchange: C -> S
-        # >> DES(Ksess) [req || TS7]
         
         # SEND eighth exchange: S -> C
         # >> DES(Ksess) [data || TS8]

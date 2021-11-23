@@ -13,7 +13,6 @@ import calendar as ca
 import os, sys, time
 from socket import *
 
-
 '''
     Constant values 
 '''
@@ -25,12 +24,12 @@ DEC = 1
 CLIENT = "client"
 SERVER = "server"
 CA = "ca"
-
 ARGS_LEN = 2
 TS_LEN = 10
 KEY_LEN = 8
 PRIME_LIM = 4
 PRIME_LOG = 3
+ABC_LEN = 26
 
 TXT = ".txt"
 DIR_KEYS = "Keys/"
@@ -38,12 +37,10 @@ CA_PUB_KEY = f"{DIR_KEYS}ca_public_key{TXT}" #PK(ca)
 S_PUB_KEY = f"{DIR_KEYS}s_public_key{TXT}"   #PK(s)
 RSA_PUB_KEY = f"{DIR_KEYS}rsa_public_key{TXT}"
 DES_SESS_KEY = f"{DIR_KEYS}des_sess_key{TXT}"
-TEMP1_KEY = f"{DIR_KEYS}temp1_key{TXT}"
-TEMP2_KEY = f"{DIR_KEYS}temp2_key{TXT}"
 
-ID_CA = "ID-CA"
-ID_C = "ID-client"
-ID_S = "ID-server"
+ID_CA = "IDcert"
+ID_C = "IDclie"
+ID_S = "IDserv"
 REQ = "memorandum"
 DATA = "take cis3319 class this morning"
 LT_SESS = 8.64e4
@@ -57,6 +54,7 @@ EXIT_KEY = '-1'
 SLEEP_LOG = 0.1
 
 INPUT_STR = ">>> "
+JUNK = "//"
 ERROR_MSG_PRIME = "\nERROR: primality test calculates out of bounds\n"
 PO = [[
         "1. Ciphertext and generated K(tmp1)", # S
@@ -65,7 +63,8 @@ PO = [[
         "2. Ciphertext, generated key pair, and Cert(s) generated",     # CA
         "2. Ciphertext, received key pair, and Cert(s) received"       # S
     ], [
-        "3. Plaintext", "4. Plaintext" # both sides
+        "3. Plaintext", 
+        "4. Plaintext" # for both sides
     ], [
         "5. Ciphertext, generated K(tmp2)", # C
         "5. Ciphertext, received K(tmp2)"  # S 
@@ -89,23 +88,25 @@ def check_dir(e) : return f"{FULL_CWD}/{e}" if os.getcwd() != str(FULL_CWD) else
 def stream_key():
     val = st.digits+st.ascii_letters+st.punctuation
     return "".join(r.sample(val, KEY_LEN))
-def write_key(e, content=None):
+def write_key(e, *args):
     path = check_dir(e)
     with open(path, "w") as k: 
-        if content==None : k.write(stream_key())
-        else : k.write(content)
+        if len(args) > 0:
+            for a in args: k.write(a+'\n')
+        else : k.write(stream_key())
         k.close()
     return path
-def read_key(e):
+def read_key(e, rsa=False):
     with open(check_dir(e), "r") as a: 
-        k = a.read().strip(); a.close()
+        if rsa is False : k = a.read().strip()
+        else:
+            k = []
+            for l in a.readlines():
+                k.append(int(l.strip()))
+        a.close()
     return k
-
-# generate key files for program use
-ca_pub_keyfile = write_key(CA_PUB_KEY)
-s_pub_keyfile = write_key(S_PUB_KEY)
-temp1_des_keyfile = write_key(TEMP1_KEY)
-temp2_des_keyfile = write_key(TEMP2_KEY)
+write_key(CA_PUB_KEY)
+write_key(S_PUB_KEY)
 
 # make timestamp
 def ts() : return ca.timegm(time.gmtime())

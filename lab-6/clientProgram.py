@@ -10,9 +10,6 @@ def clientProgram():
     c_socket = socket(AF_INET, SOCK_STREAM)
     c_socket.connect((HOST, PORT))
     
-    # TEST for rsa
-    rsacrypt(ENC, 0, 0)
-    
     # send input
     c_msg = input(INPUT_STR)
     

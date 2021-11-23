@@ -12,12 +12,21 @@ def certAuthProgram():
     ca_socket.connect((HOST, PORT))
     
     # send input
-    ca_msg = input(INPUT_STR)
-    
-    while ca_msg.lower().strip() != EXIT_KEY:
+    while True:
+        # get public and private key
+        local_ca_pub_key = read_key(CA_PUB_KEY)
+        local_ca_pri_key = stream_key()
         
-        # RECV first exchange: S -> CA
-        # >> RSA(PKca) [K(tmp1) || ID(s) || TS1], K(tmp1) generates on S
+        # RECV first exchange: S -> CA        
+        rsa_priv_d_value = int(ca_socket.recv(RECV_BYTES).decode())
+        rsa_priv_n_value = int(ca_socket.recv(RECV_BYTES).decode())
+        ca_socket.send(JUNK.encode())   # (to reduce chances of overloading socket send direction at once)
+        rsa_crypted_value = int(ca_socket.recv(RECV_BYTES).decode())        
+        decrypted_rsa_ca = rsacrypt(DEC, rsa_priv_n_value, rsa_priv_d_value, rsa_crypted_value)     #  P <-- C^d mod n
+        print(decrypted_rsa_ca)
+        
+        # revert plaintext numerics back to print text (string):
+        print("VAnguard: ", digitize_text(DEC, decrypted_rsa_ca))
         
         # SEND second exchange: CA -> S
         # >> DES(Ktmp1) [PK(s) || SK(s) || Cert(s)|| ID(s) || TS2]

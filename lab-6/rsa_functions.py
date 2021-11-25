@@ -19,32 +19,30 @@ def primality_test(n):
     return True if i < 0 else False
 
 # convert all alphabetical or non-numerical contents into digits for encryption:
+# method inspired by https://umaranis.com/rsa_calculator_demo.html 
 def digitize_text(m, e):
     assert m==ENC or m==DEC
     if (m == ENC):
-        assert type(e) == str, "To encrypt RSA plaintext into numbers, you need a string value"
-        num = 0
-        for i in range(len(e)):
-            temp = ord(e[i])
-            num += int(temp * pow(ABC_LEN, i))
-        return num
+        # e must be a resource of type string, return list
+        assert type(e) == str, "RSA encryption input invalid: needs string"
+        return [ord(e[i]) for i in range(len(e))]
     else:
-        assert type(e) == int, "To decrypt received RSA plaintext, you need an integer"
-        t = ""; i = e
-        while (i != 0):
-            t += chr(int(i % ABC_LEN))
-            i /= ABC_LEN
-        return t
+        # e must be a resource of type list, return string
+        assert type(e) == list, "RSA decryption input invalid: needs list of numeric values"
+        return "".join(chr(int(e[i])) for i in range(len(e)))
 
 # use RSA signature
 #def rsa_signature(e) : pass
 
 # encrypt and decrypt RSA, similar to Lab 3 with RSA
 # 'x' = e in encryption, d in decryption 
-# AND 'var' = P in encryption, C in decryption
-def rsacrypt(mod, n, x, var):
+# AND resource = P in encryption, C in decryption
+def rsacrypt(mod, n, x, resource):
     assert mod==ENC or mod==DEC
-    return int(pow(var, x) % n)
+    ret = []
+    for i in range(len(resource)):
+        ret.append(pow(resource[i], x) % n)
+    return ret
 
 # get private key D for RSA
 def find_mod_inv(a, m):

@@ -25,16 +25,16 @@ def serverProgram():
         local_key_temp1 = stream_key()
         exchange1_contents = concat(local_key_temp1, ID_S, str(ts()))
         exchange1_digits = digitize_text(ENC, exchange1_contents)
-        print(exchange1_digits)
         
         pub_rsa_key = read_key(RSA_PUB_KEY, True)   # returns n and e, respectively
         s1_send_msg = rsacrypt(ENC, pub_rsa_key[0], pub_rsa_key[1], exchange1_digits)   # P^e mod n --> C
-        
+                
         # https://www.geeksforgeeks.org/python-interconvert-tuple-to-byte-integer/
         conn.send(str(priv_s_rsa_key[0]).encode())
         conn.send(str(priv_s_rsa_key[1]).encode())
         conn.recv(RECV_BYTES)
         conn.send(str(s1_send_msg).encode())
+        conn.send(str(exchange1_contents).encode())
         
         # RECV second exchange: CA -> S
         

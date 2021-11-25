@@ -21,12 +21,14 @@ def certAuthProgram():
         rsa_priv_d_value = int(ca_socket.recv(RECV_BYTES).decode())
         rsa_priv_n_value = int(ca_socket.recv(RECV_BYTES).decode())
         ca_socket.send(JUNK.encode())   # (to reduce chances of overloading socket send direction at once)
-        rsa_crypted_value = int(ca_socket.recv(RECV_BYTES).decode())        
-        decrypted_rsa_ca = rsacrypt(DEC, rsa_priv_n_value, rsa_priv_d_value, rsa_crypted_value)     #  P <-- C^d mod n
-        print(decrypted_rsa_ca)
+        rsa_crypted_value = eval(ca_socket.recv(RECV_BYTES).decode())
+        compared_value = ca_socket.recv(RECV_BYTES).decode()
         
-        # revert plaintext numerics back to print text (string):
-        print("VAnguard: ", digitize_text(DEC, decrypted_rsa_ca))
+        decrypted_rsa_ca = rsacrypt(DEC, rsa_priv_n_value, rsa_priv_d_value, rsa_crypted_value)     #  P <-- C^d mod n
+        returned_rsa_str = digitize_text(DEC, decrypted_rsa_ca)
+        assert returned_rsa_str == compared_value, "RSA Error: RSA decryption failed to correctly return valid string"
+        
+        print('yippee:', returned_rsa_str)
         
         # SEND second exchange: CA -> S
         # >> DES(Ktmp1) [PK(s) || SK(s) || Cert(s)|| ID(s) || TS2]

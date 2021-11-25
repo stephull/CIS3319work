@@ -7,7 +7,6 @@
 '''
 import pyDes, math
 import hashlib, hmac
-import threading as th
 import string as st
 import random as r
 import calendar as ca
@@ -78,6 +77,7 @@ PO = [[
         "\n::::: 8. Ciphertext, received data message"
     ]       # PO[][], PO[2] and PO[5] are unique.
 ]
+EXIT_MSG = "Exiting out of: "
 
 
 '''
@@ -116,6 +116,8 @@ def s_ca_split(e):
 def ca_s_split(e):
     a = 2*KEY_LEN; b = a + MD5_LEN
     return e[:KEY_LEN], e[KEY_LEN:a], e[a:b]
+def s_c_split(e):
+    return
 
 # DES encryption
 def make_des(k) : return pyDes.des(k, pyDes.CBC, k, pad=None, padmode=pyDes.PAD_PKCS5)

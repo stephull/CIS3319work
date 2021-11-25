@@ -9,17 +9,19 @@ def clientProgram():
     print("Starting client program...")
     c_socket = socket(AF_INET, SOCK_STREAM)
     c_socket.connect((HOST, PORT))
-    
-    # send input
-    c_msg = input(INPUT_STR)
-    
-    while c_msg.lower().strip() != EXIT_KEY:    # maybe change above???
+
+    while True:
+        print("\nConnected to client program...\n")
         
         # SEND third exchange: C -> S
         # >> ID(s) || TS3
+        c_s_1_concat = concat(ID_S, str(ts()))
+        c_socket.send(str.encode(c_s_1_concat))
         
         # RECV fourth exchange: S -> C
         # >> PK(s) || Cert(s) || TS4
+        s_c_recv = c_socket.recv(RECV_BYTES).decode()
+        s_pub_key, cert, returned_ts = s_c_split(s_c_recv)
         
         # SEND fifth exchange: C -> S
         # >> RSA(PKs) [K(tmp2) || ID(c) || IP(c) || Port(c) || TS5], generate K(tmp2) on C

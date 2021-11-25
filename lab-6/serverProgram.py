@@ -5,6 +5,7 @@
 from configurations import *
 from rsa_functions import *
 
+# for any exchange between the server and certificate authenticator
 def serverProgram():
     print("Starting server program...")
     s_socket = socket(AF_INET, SOCK_STREAM)
@@ -47,8 +48,29 @@ def serverProgram():
         print([ca_s_pub_key, ca_s_priv_key])
         print(cert, '\n\n')
         
-        # RECV third exchange: C -> S
+        # Exit out of first-half of server, continue to serverProgram2 for rest of lab (client-server exchange).
+        print("To continue the lab, open new terminal and type in the following:\n")
+        print(f"\tpython3 main.py {CLIENT}")
+        break
+    
+    s_socket.close()
+    serverProgram2()
+    
+# for any communication between server and client
+def serverProgram2():
+    time.sleep(1)
+    s_socket = socket(AF_INET, SOCK_STREAM)
+    s_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    s_socket.bind((HOST, PORT))
+    s_socket.listen(BACKLOG)
+    
+    while True:
+        conn, addr = s_socket.accept()
         
+        print("HEYYYY")    # this prints, meaning that there is some connection
+        pass
+    
+        # RECV third exchange: C -> S
         
         # SEND fourth exchange: S -> C
         # >> PK(s) || Cert(s) || TS4
@@ -66,7 +88,7 @@ def serverProgram():
         # fin 
         # https://www.positronx.io/create-socket-server-with-multiple-clients-in-python/
         
-        break
-    
+    # Exiting out of everything.
+    print("\nTerminating lab...\n\n")
     s_socket.close()
     sys.exit()

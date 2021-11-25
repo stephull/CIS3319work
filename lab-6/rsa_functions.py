@@ -64,12 +64,8 @@ def begin_rsa():
     d = find_mod_inv(e, phi)
     return [d, n] if d != -1 else begin_rsa()
 
-# RSA signature generation method
-def create_rsa_sign(k, contents):
-    sha = hmac.new(str.encode(k), digestmod=hashlib.md5)
-    sha.update(str.encode(contents))
-    return sha.hexdigest()
-
-# RSA signature verification method
-def verify_rsa_sign():
-    return
+# RSA signature generation method (use same method to verify after)
+def create_rsa_sign(k, n, x, contents):
+    hash = hmac.new(str.encode(k), digestmod=hashlib.md5)
+    hash.update(str.encode(contents))
+    return hash.hexdigest()

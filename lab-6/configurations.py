@@ -6,6 +6,7 @@
     Imports 
 '''
 import pyDes, math
+import hashlib, hmac
 import threading as th
 import string as st
 import random as r
@@ -30,6 +31,7 @@ KEY_LEN = 8
 PRIME_LIM = 4
 PRIME_LOG = 3
 ABC_LEN = 26
+MD5_LEN = 32
 
 TXT = ".txt"
 DIR_KEYS = "Keys/"
@@ -38,9 +40,9 @@ S_PUB_KEY = f"{DIR_KEYS}s_public_key{TXT}"   #PK(s)
 RSA_PUB_KEY = f"{DIR_KEYS}rsa_public_key{TXT}"
 DES_SESS_KEY = f"{DIR_KEYS}des_sess_key{TXT}"
 
-ID_CA = "IDcert"
-ID_C = "IDclie"
-ID_S = "IDserv"
+ID_CA = "ID-CA"
+ID_C = "ID-client"
+ID_S = "ID-server"
 REQ = "memorandum"
 DATA = "take cis3319 class this morning"
 LT_SESS = 8.64e4
@@ -57,23 +59,23 @@ INPUT_STR = ">>> "
 JUNK = "//"
 ERROR_MSG_PRIME = "\nERROR: primality test calculates out of bounds\n"
 PO = [[
-        "1. Ciphertext and generated K(tmp1)", # S
-        "1. Ciphertext and received K(tmp1)"  # CA 
+        "\n::::: 1. Ciphertext and generated K(tmp1)", # S
+        "\n::::: 1. Ciphertext and received K(tmp1)"  # CA 
     ], [
-        "2. Ciphertext, generated key pair, and Cert(s) generated",     # CA
-        "2. Ciphertext, received key pair, and Cert(s) received"       # S
+        "\n::::: 2. Ciphertext, generated key pair, and Cert(s) generated",     # CA
+        "\n::::: 2. Ciphertext, received key pair, and Cert(s) received"       # S
     ], [
-        "3. Plaintext", 
-        "4. Plaintext" # for both sides
+        "\n::::: 3. Plaintext", 
+        "\n::::: 4. Plaintext" # for both sides
     ], [
-        "5. Ciphertext, generated K(tmp2)", # C
-        "5. Ciphertext, received K(tmp2)"  # S 
+        "\n::::: 5. Ciphertext, generated K(tmp2)", # C
+        "\n::::: 5. Ciphertext, received K(tmp2)"  # S 
     ], [
-        "6. Ciphertext, generated K(sess)",  # S
-        "6. Ciphertext, received K(sess)"   # C
+        "\n::::: 6. Ciphertext, generated K(sess)",  # S
+        "\n::::: 6. Ciphertext, received K(sess)"   # C
     ], [
-        "7. Ciphertext, receieved req message", # on S side
-        "8. Ciphertext, received data message"
+        "\n::::: 7. Ciphertext, receieved req message", # on S side
+        "\n::::: 8. Ciphertext, received data message"
     ]       # PO[][], PO[2] and PO[5] are unique.
 ]
 
@@ -85,15 +87,11 @@ PO = [[
 def check_dir(e) : return f"{FULL_CWD}/{e}" if os.getcwd() != str(FULL_CWD) else e
 
 # generate key through files or by themselves
-def stream_key():
-    val = st.digits+st.ascii_letters+st.punctuation
-    return "".join(r.sample(val, KEY_LEN))
+def stream_key() : return "".join(r.sample(st.digits+st.ascii_letters+st.punctuation, KEY_LEN))
 def write_key(e, *args):
     path = check_dir(e)
     with open(path, "w") as k: 
-        if len(args) > 0:
-            for a in args: k.write(a+'\n')
-        else : k.write(stream_key())
+        k.write("".join(a+'\n' for a in args)) if len(args) > 0 else k.write(stream_key())
         k.close()
     return path
 def read_key(e, rsa=False):
@@ -101,23 +99,23 @@ def read_key(e, rsa=False):
         if rsa is False : k = a.read().strip()
         else:
             k = []
-            for l in a.readlines():
-                k.append(int(l.strip()))
+            for l in a.readlines() : k.append(int(l.strip()))
         a.close()
     return k
 write_key(CA_PUB_KEY)
 write_key(S_PUB_KEY)
 
-# make timestamp
+# concatenate contents for messages and make timestamp
 def ts() : return ca.timegm(time.gmtime())
+def concat(*args) : return "".join(i for i in args)
 
-# concatenate and split contents
-def concat(*args):
-    ret = ""
-    for a in args: ret += a
-    return ret
-def split(e):
-    pass
+# splitting methods for specific exchanges
+def s_ca_split(e): 
+    a = len(e)-TS_LEN
+    return e[:KEY_LEN], e[KEY_LEN:a]
+def ca_s_split(e):
+    a = 2*KEY_LEN; b = a + MD5_LEN
+    return e[:KEY_LEN], e[KEY_LEN:a], e[a:b]
 
 # DES encryption
 def make_des(k) : return pyDes.des(k, pyDes.CBC, k, pad=None, padmode=pyDes.PAD_PKCS5)
@@ -126,6 +124,5 @@ def descrypt(mod, k, e):
 
 # print contents onto console
 def console_log(n, *args):
-    fluff = ":"*64; p = ""
-    for a in args : p += (a+'\n')
-    print(f'\n{fluff}', PO[n], p, '{fluff}\n')
+    fluff = ":"*64
+    print(f'\n{fluff}', PO[n], "".join(a+'\n' for a in args), '{fluff}\n')

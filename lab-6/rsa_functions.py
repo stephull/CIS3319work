@@ -31,18 +31,10 @@ def digitize_text(m, e):
         assert type(e) == list, "RSA decryption input invalid: needs list of numeric values"
         return "".join(chr(int(e[i])) for i in range(len(e)))
 
-# use RSA signature
-#def rsa_signature(e) : pass
-
 # encrypt and decrypt RSA, similar to Lab 3 with RSA
 # 'x' = e in encryption, d in decryption 
 # AND resource = P in encryption, C in decryption
-def rsacrypt(mod, n, x, resource):
-    assert mod==ENC or mod==DEC
-    ret = []
-    for i in range(len(resource)):
-        ret.append(pow(resource[i], x) % n)
-    return ret
+def rsacrypt(n, x, resource) : return [pow(resource[i], x) % n for i in range(len(resource))]
 
 # get private key D for RSA
 def find_mod_inv(a, m):
@@ -52,7 +44,7 @@ def find_mod_inv(a, m):
         if ((temp_a * temp_b) % m == 1): return i
     return -1
 
-# finally, start gathering essential components of RSA every time program begins anew
+# start gathering essential components of RSA every time program begins anew
 def begin_rsa():    
     # more info here: https://www.pythonpool.com/rsa-encryption-python/
     a = 0; b = 0; e = 4      #4 is the lowest non-prime number to start with.
@@ -67,9 +59,17 @@ def begin_rsa():
     n = a*b
     phi = (a-1)*(b-1)        
     while (not primality_test(e)):
-        e = r.randint(2, math.floor(math.sqrt(phi)))
-        # square root reduces time compexity and unnecessary waiting for 'e'
+        e = r.randint(2, math.floor(math.sqrt(phi)))    # square root reduces time compexity and unnecessary waiting for 'e'
     write_key(RSA_PUB_KEY, str(n), str(e))
     d = find_mod_inv(e, phi)
-    if (d == -1) : begin_rsa()  # very unlikely to go into infinite loop thereafter
-    return [d, n]
+    return [d, n] if d != -1 else begin_rsa()
+
+# RSA signature generation method
+def create_rsa_sign(k, contents):
+    sha = hmac.new(str.encode(k), digestmod=hashlib.md5)
+    sha.update(str.encode(contents))
+    return sha.hexdigest()
+
+# RSA signature verification method
+def verify_rsa_sign():
+    return

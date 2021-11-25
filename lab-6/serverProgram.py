@@ -40,6 +40,7 @@ def serverProgram():
         # RECV second exchange: CA -> S
         returned_des_key = conn.recv(RECV_BYTES)
         returned_des_contents = descrypt(DEC, local_key_temp1, returned_des_key).decode()
+        global ca_s_pub_key, cert       # for future exchanges with client...
         ca_s_pub_key, ca_s_priv_key, cert = ca_s_split(returned_des_contents)
         
         # PRINTOUT 2
@@ -66,16 +67,30 @@ def serverProgram2():
     
     while True:
         conn, addr = s_socket.accept()
-        
-        print("HEYYYY")    # this prints, meaning that there is some connection
-        pass
+        if conn : conn.send(str(INTERMEDIATE_PASS).encode())
+        if (conn.recv(RECV_BYTES).decode() != JUNK): continue   # don't go anywhere until valid connection is made
     
         # RECV third exchange: C -> S
+        recv_c_s_1 = conn.recv(RECV_BYTES).decode()
+        returned_s_id, returned_c_s_1_ts = c_s_1_split(recv_c_s_1)
+        print(returned_s_id, returned_c_s_1_ts)
         
+        # PRINTOUT 3
+        print(PO[2][0])
+        print(returned_s_id, returned_c_s_1_ts, '\n\n')
+    
         # SEND fourth exchange: S -> C
         # >> PK(s) || Cert(s) || TS4
+        s_c_1_ts = str(ts())
+        s_c_1_concat = concat(ca_s_pub_key, cert, s_c_1_ts)
+        conn.send(str(s_c_1_concat).encode())
+        
+        # PRINTOUT 4
+        print(PO[2][1])
+        print(ca_s_pub_key, cert, s_c_1_ts, '\n\n')
         
         # RECV fifth exchange: C -> S
+        
         
         # SEND sixth exchange: S -> C
         # >> DES(Ktmp2) [K(sess) || LT(sess) || ID(c) || TS6]
@@ -85,8 +100,8 @@ def serverProgram2():
         # SEND eighth exchange: S -> C
         # >> DES(Ksess) [data || TS8]
         
-        # fin 
-        # https://www.positronx.io/create-socket-server-with-multiple-clients-in-python/
+        # EXTRA: https://www.positronx.io/create-socket-server-with-multiple-clients-in-python/
+        break
         
     # Exiting out of everything.
     print("\nTerminating lab...\n\n")

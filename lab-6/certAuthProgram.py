@@ -13,11 +13,15 @@ def certAuthProgram():
     
     # send input
     while True:
-        if (ca_socket.recv(RECV_BYTES) != None):
+        begin_ca = ca_socket.recv(RECV_BYTES).decode()
+        if (begin_ca == JUNK):
             priv_s_rsa_key = begin_rsa()    # for RSA private key
             pub_rsa_key = read_key(RSA_PUB_KEY, True)   # returns n and e, respectively
             pub_rsa_n = pub_rsa_key[0]; pub_rsa_e = pub_rsa_key[1]
             ca_socket.send(str(pub_rsa_key).encode())
+        else: 
+            print("Invalid connection. Open client using python3 main.py client")
+            break
             
         # get public and private key
         pri_rsa_n = priv_s_rsa_key[1]; pri_rsa_d = priv_s_rsa_key[0]

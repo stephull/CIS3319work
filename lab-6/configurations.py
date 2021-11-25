@@ -45,9 +45,10 @@ ID_S = "ID-server"
 REQ = "memorandum"
 DATA = "take cis3319 class this morning"
 LT_SESS = 8.64e4
+INTERMEDIATE_PASS = "sunday november 28"
 
-PORT = 8088
-HOST = "127.0.0.1"
+PORT = 8088                 # str(PORT) -> Port(c)
+HOST = "127.0.0.1"          # IPc
 PORT_LIM = range(1024, 49151+1)
 RECV_BYTES = 1024
 BACKLOG = 2
@@ -109,15 +110,19 @@ write_key(S_PUB_KEY)
 def ts() : return ca.timegm(time.gmtime())
 def concat(*args) : return "".join(i for i in args)
 
-# splitting methods for specific exchanges
+# splitting methods for specific cases (exchanges)
 def s_ca_split(e): 
     a = len(e)-TS_LEN
     return e[:KEY_LEN], e[KEY_LEN:a]
 def ca_s_split(e):
     a = 2*KEY_LEN; b = a + MD5_LEN
     return e[:KEY_LEN], e[KEY_LEN:a], e[a:b]
-def s_c_split(e):
-    return
+def c_s_1_split(e): 
+    a = len(e)-TS_LEN
+    return e[:a], e[a:]
+def s_c_1_split(e):
+    a = len(e)-TS_LEN
+    return e[:KEY_LEN], e[KEY_LEN:a], e[a:]
 
 # DES encryption
 def make_des(k) : return pyDes.des(k, pyDes.CBC, k, pad=None, padmode=pyDes.PAD_PKCS5)

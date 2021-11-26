@@ -15,8 +15,8 @@ def certAuthProgram():
     while True:
         begin_ca = ca_socket.recv(RECV_BYTES).decode()
         if (begin_ca == JUNK):
-            priv_s_rsa_key = begin_rsa()    # for RSA private key
-            pub_rsa_key = read_key(RSA_PUB_KEY, True)   # returns n and e, respectively
+            priv_s_rsa_key = begin_rsa(1)    # for RSA private key
+            pub_rsa_key = read_key(RSA_PUB_KEY_1, True)   # returns n and e, respectively
             pub_rsa_n = pub_rsa_key[0]; pub_rsa_e = pub_rsa_key[1]
             ca_socket.send(str(pub_rsa_key).encode())
         else: 
@@ -26,7 +26,7 @@ def certAuthProgram():
         # get public and private key
         pri_rsa_n = priv_s_rsa_key[1]; pri_rsa_d = priv_s_rsa_key[0]
         local_ca_pub_key = read_key(CA_PUB_KEY)     # PKca
-        imported_s_pub_key = read_key(S_PUB_KEY)    # PKs
+        #imported_s_pub_key = read_key(S_PUB_KEY)    # PKs
         local_ca_pri_key = stream_key()     # SKca
         
         # RECV first exchange: S -> CA        
@@ -46,19 +46,21 @@ def certAuthProgram():
         # >> DES(Ktmp1) [PK(s) || SK(s) || Cert(s) || ID(s) || TS2]
         
         # More info on cert: https://wizardforcel.gitbooks.io/practical-cryptography-for-developers-book/content/digital-signatures/rsa-sign-verify-examples.html
-        new_cert = create_rsa_sign(local_ca_pri_key, pub_rsa_n, pub_rsa_e, concat(
-            returned_s_id, ID_CA, imported_s_pub_key
+        cert_priv_key = RSA.generate(RSA_BYTES_LEN, Random.new().read)
+        cert_pub_key = cert_priv_key.publickey()
+        print(cert_priv_key, cert_pub_key)
+        new_cert = rsa_cert(ENC, cert_pub_key, concat(
+            returned_s_id, ID_CA, cert_pub_key
         ))
-        priv_s_key = stream_key()       # SKs
         des_key = descrypt(ENC, returned_s_key, concat(
-            imported_s_pub_key, priv_s_key, new_cert, returned_s_id, str(ts())
+            cert_pub_key, cert_priv_key, new_cert, returned_s_id, str(ts())
         ))
         ca_socket.send(des_key)
         
         # PRINTOUT 2
         print(PO[1][0])
         print(des_key)
-        print([imported_s_pub_key, priv_s_key])
+        print([cert_priv_key, cert_pub_key])
         print(new_cert, '\n\n')
         
         # Exit out of socket, terminate CA program.

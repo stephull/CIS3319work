@@ -90,15 +90,52 @@ def serverProgram2():
         print(ca_s_pub_key, cert, s_c_1_ts, '\n\n')
         
         # RECV fifth exchange: C -> S
+        s5_rsa_priv_key = begin_rsa(2)
+        s5_rsa_pub_key = read_key(RSA_PUB_KEY_2, True)
+        conn.send(str(s5_rsa_pub_key).encode())
+        s5_recv = eval(conn.recv(RECV_BYTES).decode())
+        conn.send(JUNK.encode())
+        decrypted_rsa_s5 = rsacrypt(s5_rsa_priv_key[1], s5_rsa_priv_key[0], s5_recv)
+        returned_rsa_s5 = digitize_text(DEC, decrypted_rsa_s5)
+        assert returned_rsa_s5 == conn.recv(RECV_BYTES).decode(), "RSA Error: RSA decryption failed to correctly return valid string"
         
+        # PRINTOUT 5
+        print(PO[3][1])
+        print('\n\n')
         
         # SEND sixth exchange: S -> C
         # >> DES(Ktmp2) [K(sess) || LT(sess) || ID(c) || TS6]
+        s6_des_key = s_c_2_split(returned_rsa_s5)   
+        '''WORK ON THIS!!!'''
+        s6_ts = str(ts())
+        new_sess_key = read_key(SESS_KEY)
+        s6_concat = concat(new_sess_key, LT_SESS, ID_C, s6_ts)
+        s6_send = descrypt(ENC, s6_des_key, s6_concat)
+        conn.send(str(s6_send).encode())
+        
+        # PRINTOUT 6
+        print(PO[4][0])
+        print('\n\n')
         
         # RECV seventh exchange: C -> S
+        s7_recv = conn.recv(RECV_BYTES)
+        returned_s7_data = descrypt(DEC, new_sess_key, s7_recv).decode()
+        returned_req, returned_s7_ts = c_s_3_split(returned_s7_data)
+        
+        # PRINTOUT 7
+        print(PO[5][0])
+        print('\n\n')
         
         # SEND eighth exchange: S -> C
         # >> DES(Ksess) [data || TS8]
+        s8_ts = str(ts())
+        s8_concat = concat(DATA, s8_ts)
+        s8_send = descrypt(ENC, new_sess_key, s8_concat)
+        conn.send(str(s8_send).encode())
+        
+        # PRINTOUT 8
+        print(PO[5][1])
+        print('\n\n')
         
         # EXTRA: https://www.positronx.io/create-socket-server-with-multiple-clients-in-python/
         break

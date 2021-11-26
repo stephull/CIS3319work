@@ -12,18 +12,22 @@ import random as r
 import calendar as ca
 import os, sys, time
 from socket import *
+import base64
+from Crypto import Random
+from Crypto.PublicKey import RSA
 
 '''
     Constant values 
 '''
 CWD = "lab-6"
-FULL_CWD = f'C:/Users/shull/OneDrive/Desktop/School/FALL 2021/CIS 3319/CIS3319work/CIS3319work/{CWD}'
+FULL_CWD = f'C:/Users/shull/OneDrive/Desktop/School/FALL2021/CIS3319/CIS3319work/CIS3319work/{CWD}'
 
 ENC = 0
 DEC = 1
 CLIENT = "client"
 SERVER = "server"
 CA = "ca"
+
 ARGS_LEN = 2
 TS_LEN = 10
 KEY_LEN = 8
@@ -31,13 +35,15 @@ PRIME_LIM = 4
 PRIME_LOG = 3
 ABC_LEN = 26
 MD5_LEN = 32
+RSA_BYTES_LEN = 1024
 
 TXT = ".txt"
 DIR_KEYS = "Keys/"
 CA_PUB_KEY = f"{DIR_KEYS}ca_public_key{TXT}" #PK(ca)
 S_PUB_KEY = f"{DIR_KEYS}s_public_key{TXT}"   #PK(s)
-RSA_PUB_KEY = f"{DIR_KEYS}rsa_public_key{TXT}"
-DES_SESS_KEY = f"{DIR_KEYS}des_sess_key{TXT}"
+RSA_PUB_KEY_1 = f"{DIR_KEYS}rsa_public_key_1{TXT}"
+RSA_PUB_KEY_2 = f"{DIR_KEYS}rsa_public_key_2{TXT}"
+SESS_KEY = f"{DIR_KEYS}sess_key{TXT}"
 
 ID_CA = "ID-CA"
 ID_C = "ID-client"
@@ -105,6 +111,7 @@ def read_key(e, rsa=False):
     return k
 write_key(CA_PUB_KEY)
 write_key(S_PUB_KEY)
+write_key(SESS_KEY)
 
 # concatenate contents for messages and make timestamp
 def ts() : return ca.timegm(time.gmtime())
@@ -123,6 +130,13 @@ def c_s_1_split(e):
 def s_c_1_split(e):
     a = len(e)-TS_LEN
     return e[:KEY_LEN], e[KEY_LEN:a], e[a:]
+    # skip c -> s 2nd exchange here
+def s_c_2_split(e):
+    return
+def c_s_3_split(e):
+    return
+def s_c_3_split(e):
+    return
 
 # DES encryption
 def make_des(k) : return pyDes.des(k, pyDes.CBC, k, pad=None, padmode=pyDes.PAD_PKCS5)

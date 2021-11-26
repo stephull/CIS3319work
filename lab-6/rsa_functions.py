@@ -45,7 +45,7 @@ def find_mod_inv(a, m):
     return -1
 
 # start gathering essential components of RSA every time program begins anew
-def begin_rsa():    
+def begin_rsa(i):    
     # more info here: https://www.pythonpool.com/rsa-encryption-python/
     a = 0; b = 0; e = 4      #4 is the lowest non-prime number to start with.
     try:
@@ -60,12 +60,18 @@ def begin_rsa():
     phi = (a-1)*(b-1)        
     while (not primality_test(e)):
         e = r.randint(2, math.floor(math.sqrt(phi)))    # square root reduces time compexity and unnecessary waiting for 'e'
-    write_key(RSA_PUB_KEY, str(n), str(e))
+    keyfile = "RSA_PUB_KEY_"+str(i)
+    write_key(keyfile, str(n), str(e))
     d = find_mod_inv(e, phi)
-    return [d, n] if d != -1 else begin_rsa()
+    return [d, n] if d != -1 else begin_rsa(i)
 
-# RSA signature generation method (use same method to verify after)
-def create_rsa_sign(k, n, x, contents):
-    hash = hmac.new(str.encode(k), digestmod=hashlib.md5)
-    hash.update(str.encode(contents))
-    return hash.hexdigest()
+# RSA signature generation method (use same method to verify after
+'''
+    FIX LATERRRR
+'''
+def rsa_cert(mode, key, contents):
+    assert mode==ENC or mode==DEC
+    if (mode == ENC):
+        pass
+    else:
+        pass

@@ -39,9 +39,13 @@ def serverProgram():
         
         # RECV second exchange: CA -> S
         returned_des_key = conn.recv(RECV_BYTES)
-        returned_des_contents = descrypt(DEC, local_key_temp1, returned_des_key).decode()
-        global ca_s_pub_key, cert       # for future exchanges with client...
+        conn.send(JUNK.encode())
+        returned_des_contents = descrypt(DEC, local_key_temp1, returned_des_key).decode()   
+        
+        global validate_cert, ca_s_pub_key, cert       # for future exchanges with client...
+        validate_cert = conn.recv(RECV_BYTES).decode()
         ca_s_pub_key, ca_s_priv_key, cert = ca_s_split(returned_des_contents)
+        #print(cert, type(cert)); print(ca_s_pub_key, type(ca_s_pub_key)); print(ca_s_priv_key, type(ca_s_priv_key))
         
         # PRINTOUT 2
         print(PO[1][1])
@@ -73,7 +77,6 @@ def serverProgram2():
         # RECV third exchange: C -> S
         recv_c_s_1 = conn.recv(RECV_BYTES).decode()
         returned_s_id, returned_c_s_1_ts = c_s_1_split(recv_c_s_1)
-        print(returned_s_id, returned_c_s_1_ts)
         
         # PRINTOUT 3
         print(PO[2][0])
@@ -82,12 +85,20 @@ def serverProgram2():
         # SEND fourth exchange: S -> C
         # >> PK(s) || Cert(s) || TS4
         s_c_1_ts = str(ts())
-        s_c_1_concat = concat(ca_s_pub_key, cert, s_c_1_ts)
+        s_pub_key = read_key(S_PUB_KEY)
+        s_c_1_concat = concat(s_pub_key, str(cert), s_c_1_ts)
         conn.send(str(s_c_1_concat).encode())
         
         # PRINTOUT 4
         print(PO[2][1])
-        print(ca_s_pub_key, cert, s_c_1_ts, '\n\n')
+        print(s_pub_key, cert, s_c_1_ts, '\n\n')
+        
+        # verify the contents of verificate
+        conn.send(str(validate_cert).encode())
+        conn.recv(RECV_BYTES)
+        conn.send(str(ca_s_pub_key).encode())
+        conn.recv(RECV_BYTES)
+        conn.send(str(cert).encode())
         
         # RECV fifth exchange: C -> S
         s5_rsa_priv_key = begin_rsa(2)
@@ -98,24 +109,25 @@ def serverProgram2():
         decrypted_rsa_s5 = rsacrypt(s5_rsa_priv_key[1], s5_rsa_priv_key[0], s5_recv)
         returned_rsa_s5 = digitize_text(DEC, decrypted_rsa_s5)
         assert returned_rsa_s5 == conn.recv(RECV_BYTES).decode(), "RSA Error: RSA decryption failed to correctly return valid string"
+        returned_ktmp2 = returned_rsa_s5[:KEY_LEN]
         
         # PRINTOUT 5
         print(PO[3][1])
-        print('\n\n')
+        print(s5_recv)
+        print(returned_ktmp2, '\n\n')
         
         # SEND sixth exchange: S -> C
-        # >> DES(Ktmp2) [K(sess) || LT(sess) || ID(c) || TS6]
-        s6_des_key = s_c_2_split(returned_rsa_s5)   
-        '''WORK ON THIS!!!'''
+        # >> DES(Ktmp2) [K(sess) || LT(sess) || ID(c) || TS6]  
         s6_ts = str(ts())
         new_sess_key = read_key(SESS_KEY)
         s6_concat = concat(new_sess_key, LT_SESS, ID_C, s6_ts)
-        s6_send = descrypt(ENC, s6_des_key, s6_concat)
-        conn.send(str(s6_send).encode())
+        s6_send = descrypt(ENC, returned_ktmp2, s6_concat)
+        conn.send(s6_send)
         
         # PRINTOUT 6
         print(PO[4][0])
-        print('\n\n')
+        print(s6_send)
+        print(new_sess_key, '\n\n')
         
         # RECV seventh exchange: C -> S
         s7_recv = conn.recv(RECV_BYTES)
@@ -124,18 +136,20 @@ def serverProgram2():
         
         # PRINTOUT 7
         print(PO[5][0])
-        print('\n\n')
+        print(s7_recv)
+        print('\nMessage:\t', returned_req, '\n\n')
         
         # SEND eighth exchange: S -> C
         # >> DES(Ksess) [data || TS8]
         s8_ts = str(ts())
         s8_concat = concat(DATA, s8_ts)
         s8_send = descrypt(ENC, new_sess_key, s8_concat)
-        conn.send(str(s8_send).encode())
+        conn.send(s8_send)
         
         # PRINTOUT 8
         print(PO[5][1])
-        print('\n\n')
+        print(s8_send)
+        print('\nFinal message: \t', DATA, '\n\n')
         
         # EXTRA: https://www.positronx.io/create-socket-server-with-multiple-clients-in-python/
         break

@@ -12,9 +12,6 @@ import random as r
 import calendar as ca
 import os, sys, time
 from socket import *
-import base64
-from Crypto import Random
-from Crypto.PublicKey import RSA
 
 '''
     Constant values 
@@ -35,12 +32,13 @@ PRIME_LIM = 4
 PRIME_LOG = 3
 ABC_LEN = 26
 MD5_LEN = 32
-RSA_BYTES_LEN = 1024
+RSA_BYTES_LEN = 2048
 
 TXT = ".txt"
 DIR_KEYS = "Keys/"
 CA_PUB_KEY = f"{DIR_KEYS}ca_public_key{TXT}" #PK(ca)
 S_PUB_KEY = f"{DIR_KEYS}s_public_key{TXT}"   #PK(s)
+RSA_PUB_KEY_0 = f"{DIR_KEYS}rsa_public_key_0{TXT}"
 RSA_PUB_KEY_1 = f"{DIR_KEYS}rsa_public_key_1{TXT}"
 RSA_PUB_KEY_2 = f"{DIR_KEYS}rsa_public_key_2{TXT}"
 SESS_KEY = f"{DIR_KEYS}sess_key{TXT}"
@@ -115,28 +113,32 @@ write_key(SESS_KEY)
 
 # concatenate contents for messages and make timestamp
 def ts() : return ca.timegm(time.gmtime())
-def concat(*args) : return "".join(i for i in args)
+def concat(*args) : return "".join(str(i) for i in args)
 
 # splitting methods for specific cases (exchanges)
 def s_ca_split(e): 
     a = len(e)-TS_LEN
     return e[:KEY_LEN], e[KEY_LEN:a]
 def ca_s_split(e):
-    a = 2*KEY_LEN; b = a + MD5_LEN
-    return e[:KEY_LEN], e[KEY_LEN:a], e[a:b]
+    #a = 2*KEY_LEN; b = a + MD5_LEN
+    #return e[:KEY_LEN], e[KEY_LEN:a], e[a:b]
+    s = []
+    for i in range(len(e)):
+        if (str(e[i]) == "[" or str(e[i]) == "]") : s.append(i)
+    return eval(e[s[0]: s[1]+1]), eval(e[s[2]: s[3]+1]), eval(e[s[4]: s[5]+1])
 def c_s_1_split(e): 
     a = len(e)-TS_LEN
     return e[:a], e[a:]
 def s_c_1_split(e):
     a = len(e)-TS_LEN
     return e[:KEY_LEN], e[KEY_LEN:a], e[a:]
-    # skip c -> s 2nd exchange here
+# SKIP ONE (5th exchange, c -> s)
 def s_c_2_split(e):
-    return
+    return e[:KEY_LEN], e[KEY_LEN:-(TS_LEN+len(ID_C))], e[:-TS_LEN]
 def c_s_3_split(e):
-    return
+    return e[:len(REQ)], e[len(REQ):]
 def s_c_3_split(e):
-    return
+    return e[:len(DATA)], e[len(DATA):]
 
 # DES encryption
 def make_des(k) : return pyDes.des(k, pyDes.CBC, k, pad=None, padmode=pyDes.PAD_PKCS5)

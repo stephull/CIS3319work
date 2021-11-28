@@ -15,9 +15,9 @@ def certAuthProgram():
     while True:
         begin_ca = ca_socket.recv(RECV_BYTES).decode()
         if (begin_ca == JUNK):
+            time.sleep(1)
             priv_s_rsa_key = begin_rsa(1)    # for RSA private key
             pub_rsa_key = read_key(RSA_PUB_KEY_1, True)   # returns n and e, respectively
-            pub_rsa_n = pub_rsa_key[0]; pub_rsa_e = pub_rsa_key[1]
             ca_socket.send(str(pub_rsa_key).encode())
         else: 
             print("Invalid connection. Open client using python3 main.py client")
@@ -25,9 +25,7 @@ def certAuthProgram():
             
         # get public and private key
         pri_rsa_n = priv_s_rsa_key[1]; pri_rsa_d = priv_s_rsa_key[0]
-        local_ca_pub_key = read_key(CA_PUB_KEY)     # PKca
-        #imported_s_pub_key = read_key(S_PUB_KEY)    # PKs
-        local_ca_pri_key = stream_key()     # SKca
+        s_pub_key = read_key(S_PUB_KEY)    # PKs
         
         # RECV first exchange: S -> CA        
         rsa_crypted_value = eval(ca_socket.recv(RECV_BYTES).decode())   # main
@@ -46,27 +44,27 @@ def certAuthProgram():
         # >> DES(Ktmp1) [PK(s) || SK(s) || Cert(s) || ID(s) || TS2]
         
         # More info on cert: https://wizardforcel.gitbooks.io/practical-cryptography-for-developers-book/content/digital-signatures/rsa-sign-verify-examples.html
-        cert_priv_key = RSA.generate(RSA_BYTES_LEN, Random.new().read)
-        cert_pub_key = cert_priv_key.publickey()
-        print(cert_priv_key, cert_pub_key)
-        new_cert = rsa_cert(ENC, cert_pub_key, concat(
-            returned_s_id, ID_CA, cert_pub_key
-        ))
+        cert_priv_key = begin_rsa(0)        # SKca
+        cert_pub_key = read_key(RSA_PUB_KEY_0, True) #PKca
+        new_contents = concat(returned_s_id, ID_CA, s_pub_key)
+        new_cert = rsacrypt(cert_priv_key[1], cert_priv_key[0], digitize_text(ENC, new_contents))
         des_key = descrypt(ENC, returned_s_key, concat(
-            cert_pub_key, cert_priv_key, new_cert, returned_s_id, str(ts())
+            str(cert_pub_key), str(cert_priv_key), str(new_cert), returned_s_id, str(ts())
         ))
         ca_socket.send(des_key)
+        ca_socket.recv(RECV_BYTES)
+        ca_socket.send(str(new_contents).encode())
         
         # PRINTOUT 2
         print(PO[1][0])
         print(des_key)
-        print([cert_priv_key, cert_pub_key])
+        print([str(cert_pub_key), str(cert_priv_key)])
         print(new_cert, '\n\n')
         
         # Exit out of socket, terminate CA program.
         time.sleep(1)
         print("\nThank you for using the certificate authenticator.")
-        print(f"Redirect to the client using the same commands: \tpython3 main.py <{CLIENT}>")
+        print(f"Redirect to the client using the same commands: \tpython3 main.py {CLIENT}")
         print(f"\n{EXIT_MSG}{CA}\n\n")
         break
     

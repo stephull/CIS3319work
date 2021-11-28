@@ -60,18 +60,7 @@ def begin_rsa(i):
     phi = (a-1)*(b-1)        
     while (not primality_test(e)):
         e = r.randint(2, math.floor(math.sqrt(phi)))    # square root reduces time compexity and unnecessary waiting for 'e'
-    keyfile = "RSA_PUB_KEY_"+str(i)
+    keyfile = "Keys/rsa_public_key_"+str(i)+TXT
     write_key(keyfile, str(n), str(e))
     d = find_mod_inv(e, phi)
     return [d, n] if d != -1 else begin_rsa(i)
-
-# RSA signature generation method (use same method to verify after
-'''
-    FIX LATERRRR
-'''
-def rsa_cert(mode, key, contents):
-    assert mode==ENC or mode==DEC
-    if (mode == ENC):
-        pass
-    else:
-        pass

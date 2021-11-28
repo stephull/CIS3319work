@@ -6,7 +6,6 @@
     Imports 
 '''
 import pyDes, math
-import hashlib, hmac
 import string as st
 import random as r
 import calendar as ca
@@ -36,12 +35,14 @@ RSA_BYTES_LEN = 2048
 
 TXT = ".txt"
 DIR_KEYS = "Keys/"
+DIR_CERT = "Certificate/"
 CA_PUB_KEY = f"{DIR_KEYS}ca_public_key{TXT}" #PK(ca)
 S_PUB_KEY = f"{DIR_KEYS}s_public_key{TXT}"   #PK(s)
 RSA_PUB_KEY_0 = f"{DIR_KEYS}rsa_public_key_0{TXT}"
 RSA_PUB_KEY_1 = f"{DIR_KEYS}rsa_public_key_1{TXT}"
 RSA_PUB_KEY_2 = f"{DIR_KEYS}rsa_public_key_2{TXT}"
 SESS_KEY = f"{DIR_KEYS}sess_key{TXT}"
+CERT_FILE = f"{DIR_CERT}cert{TXT}"
 
 ID_CA = "ID-CA"
 ID_C = "ID-client"
@@ -49,7 +50,7 @@ ID_S = "ID-server"
 REQ = "memorandum"
 DATA = "take cis3319 class this morning"
 LT_SESS = 8.64e4
-INTERMEDIATE_PASS = "sunday november 28"
+INTERMEDIATE_PASS = "server pass"
 
 PORT = 8088                 # str(PORT) -> Port(c)
 HOST = "127.0.0.1"          # IPc
@@ -120,8 +121,6 @@ def s_ca_split(e):
     a = len(e)-TS_LEN
     return e[:KEY_LEN], e[KEY_LEN:a]
 def ca_s_split(e):
-    #a = 2*KEY_LEN; b = a + MD5_LEN
-    #return e[:KEY_LEN], e[KEY_LEN:a], e[a:b]
     s = []
     for i in range(len(e)):
         if (str(e[i]) == "[" or str(e[i]) == "]") : s.append(i)

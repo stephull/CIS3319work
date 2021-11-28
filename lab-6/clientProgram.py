@@ -42,7 +42,10 @@ def clientProgram():
         cert = eval(c_socket.recv(RECV_BYTES).decode())
         decrypted_rsa_cert = rsacrypt(s_pub_key[0], s_pub_key[1], cert)
         returned_cert_str = digitize_text(DEC, decrypted_rsa_cert)
-        if (validate_cert == returned_cert_str):
+        
+        cert_input = eval(input("\nType in the certificate as shown in: ./Certificates/cert.txt\n>>>"))
+        decrypt_input = digitize_text(DEC, rsacrypt(s_pub_key[0], s_pub_key[1], cert_input))
+        if (validate_cert == returned_cert_str == decrypt_input):
             print("\nCertificate valid: continue\n")
         else:
             print("\nCertificate Invalid: RSA decryption failed to correctly return valid string\n")

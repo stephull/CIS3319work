@@ -48,6 +48,7 @@ def certAuthProgram():
         cert_pub_key = read_key(RSA_PUB_KEY_0, True) #PKca
         new_contents = concat(returned_s_id, ID_CA, s_pub_key)
         new_cert = rsacrypt(cert_priv_key[1], cert_priv_key[0], digitize_text(ENC, new_contents))
+        write_key(CERT_FILE, str(new_cert))
         des_key = descrypt(ENC, returned_s_key, concat(
             str(cert_pub_key), str(cert_priv_key), str(new_cert), returned_s_id, str(ts())
         ))
